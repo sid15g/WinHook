@@ -1,0 +1,12 @@
+CFLAGS = -LD_LIBRARY_PATH=. -lpsapi -DPSAPI_VERSION=1 -Wall -ggdb
+
+build:winhook.exe
+
+winhook.exe: pedump.cpp pygetopt.c hook.cpp winhook.cpp
+	g++ $(CFLAGS) $^ -o $@
+
+pedump.exe: pedump.cpp pygetopt.c
+	g++ $(CFLAGS) $^ -o $@
+
+clean:
+	del *.exe

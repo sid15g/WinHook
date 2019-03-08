@@ -8,17 +8,14 @@ An application to monitor a Windows API used by other Windows based applications
 - Visual Express 2017
 - Windows 32bit system
 
-## How to build
--
-
-
 ## Assumptions:
 -
 
 ## Implemention summary:
 -
 
-## Acknowledgement
-- [Microsoft Documents] (https://docs.microsoft.com/en-us/windows/desktop/winmsg/hooks)
+## Acknowledgements
 - [Peering Into PE] (http://bytepointer.com/resources/pietrek_peering_inside_pe.htm)
+- [Microsoft Docs] (https://docs.microsoft.com/en-us/windows/desktop/winmsg/)
 - [PE Dump](https://github.com/buaabyl/pedump)
+- [Microsoft Error Codes](https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes--0-499-)

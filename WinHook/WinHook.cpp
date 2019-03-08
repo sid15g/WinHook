@@ -36,6 +36,7 @@ std::string convert(std::wstring ws) {
 		//std::cout << "std::string =     " << s << std::endl;
 		return s;
 	}
+	return NULL;
 }
 
 /**
@@ -104,7 +105,7 @@ PROCESSENTRY32* snapshotAllProcesses(DWORD processId) {
 		else {
 			do {
 
-				_tprintf(TEXT("\Reading Process (%s) : (%lu)"), pe32->szExeFile, pe32->th32ProcessID);
+				_tprintf(TEXT(" Reading Process (%s) : (%lu)"), pe32->szExeFile, pe32->th32ProcessID);
 
 				// Retrieve the priority class.
 				DWORD dwPriorityClass = 0;
@@ -185,7 +186,7 @@ HMODULE enum_modules(HANDLE hProcess, std::string dllName) {
 				if ( dllName.compare(std::string(mnamestr)) == 0) {
 					cout << "=========== Module Found =============" << endl;
 					cout << "\tModule Name: " << mnamestr << endl;
-					printf("\tLocation (0x%08X)\n", hMods[i] );
+					printf("\tLocation (0x%08X)\n", (unsigned int)hMods[i] );
 					return hMods[i];
 				}
 				else {
@@ -240,11 +241,8 @@ int main(int argc, char *argv[]) {
 				HMODULE dll = enum_modules(lpInfo->hProcess, dllpath);
 
 				if ( dll != NULL) {
-					HHOOK hook = hook_api(apiname, dllpath, dll);
-					if (hook != NULL) {
-						Sleep(5000);
-						unhook_api(hook);
-					}
+					hook_api(apiname, dllpath, dll);
+					Sleep(5000);
 				}
 			}
 

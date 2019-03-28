@@ -69,6 +69,8 @@ LRESULT WINAPI MainWndProc(HWND hwndMain, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 	gh_hwndMain = hwndMain;
 	int index;
+	
+	cout << "WinProc Called" << endl;
 
 	switch (uMsg) {
 		case WM_CREATE:
@@ -88,19 +90,21 @@ LRESULT WINAPI MainWndProc(HWND hwndMain, UINT uMsg, WPARAM wParam, LPARAM lPara
 						
 						HHOOK hook = SetWindowsHookEx(WH_SYSMSGFILTER, hookptr->apiAddress, hookptr->baseAddress, 0);
 						hookptr->hhook = hook;
-
+						
 						if (!hook) {
 							cout << "Failed to install hook!" << "Error" << MB_ICONERROR << endl;
+							afHOOK = false;
 							return 0;
 						} else {
 							printf("Hooked\n");
-							unhook_api(hook);
-							//todo
+							CheckMenuItem(hmenu, index, MF_BYCOMMAND | MF_UNCHECKED);
+							afHOOK = true;
 							return 1;
 						}
-					}
-					else {
-
+					} else {
+						unhook_api(hookptr->hhook);
+						CheckMenuItem(hmenu, index, MF_BYCOMMAND | MF_UNCHECKED);
+						afHOOK = false;
 					}
 					break;
 				default:
@@ -112,13 +116,95 @@ LRESULT WINAPI MainWndProc(HWND hwndMain, UINT uMsg, WPARAM wParam, LPARAM lPara
 	};
 
 	return 0;
-}
+}//end of function
 
+
+/** 
+* Hook Procedure used with SetWindowsHookEx
+* @Params:
+*	** ncode: Hook code that the hook procedure uses to determine the action to perform
+*	** wParam and lParam: Its value depends on the type of the hook
+*						  Typically contains information about a message that was sent or posted.
+*/
 LRESULT CALLBACK MessageProc(int nCode, WPARAM wParam, LPARAM lParam) {
-	return 0;
+	CHAR szBuf[128], szMsg[16], szCode[32];
+	HDC hdc;
+	size_t cch;
+	static int c = 0;
+	HRESULT hResult;
+
+
+	if (nCode < 0)  // do not process message 
+		return CallNextHookEx(hookptr->hhook, nCode, wParam, lParam);
+
+	switch (nCode)
+	{
+	case MSGF_DIALOGBOX:
+		hResult = StringCchCopyA(szCode, 32 / sizeof(TCHAR), "MSGF_DIALOGBOX");
+		if (FAILED(hResult))
+		{
+			// TODO: write error handler
+		}
+		break;
+
+	case MSGF_MENU:
+		hResult = StringCchCopyA(szCode, 32 / sizeof(TCHAR), "MSGF_MENU");
+		if (FAILED(hResult))
+		{
+			// TODO: write error handler
+		}
+		break;
+
+	case MSGF_SCROLLBAR:
+		hResult = StringCchCopyA(szCode, 32 / sizeof(TCHAR), "MSGF_SCROLLBAR");
+		if (FAILED(hResult))
+		{
+			// TODO: write error handler
+		}
+		break;
+
+	default:
+		hResult = StringCchPrintfA(szCode, 128 / sizeof(TCHAR), "Unknown: %d", nCode);
+		if (FAILED(hResult))
+		{
+			// TODO: write error handler
+		}
+		break;
+	}
+
+	// Call an application-defined function that converts a message 
+	// constant to a string and copies it to a buffer. 
+
+	LookUpTheMessage((PMSG)lParam, (LPTSTR)szMsg);
+
+	hdc = GetDC(gh_hwndMain);
+	hResult = StringCchPrintfA(szBuf, 128 / sizeof(TCHAR),
+		"MSGFILTER  nCode: %s, msg: %s, %d times    ",
+		szCode, szMsg, c++);
+	if (FAILED(hResult))
+	{
+		// TODO: write error handler
+	}
+	hResult = StringCchLengthA(szBuf, 128 / sizeof(TCHAR), &cch);
+	if (FAILED(hResult))
+	{
+		// TODO: write error handler
+	}
+	TextOutA(hdc, 2, 135, szBuf, cch);
+	ReleaseDC(gh_hwndMain, hdc);
+
+	return CallNextHookEx(hookptr->hhook, nCode, wParam, lParam);
+
 }
 
 int unhook_api(HHOOK hook) {
   UnhookWindowsHookEx(hook);
   return 0;
 }//end of function
+
+
+void LookUpTheMessage(PMSG msg, LPTSTR str) {
+	cout << "Got: " << endl;
+	cout << msg << " || " << str << endl;
+	cout << endl;
+}

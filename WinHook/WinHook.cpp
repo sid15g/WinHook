@@ -14,6 +14,7 @@
 
 #include "pedump.h"
 #include "winhook.h"
+#include "utility.h"
 #include "stdafx.h"
 
 using namespace std;
@@ -220,7 +221,10 @@ int main(int argc, char *argv[]) {
 
 	if (argc < 3) {
 		printf("\nUsage : winhook.exe -e TargetExe -f APIName \n");
-		ExitProcess(0);
+		//cout << getPid() << endl;
+		//msgBox(getCurrentDateTime());
+		log_call("vidfbvidfb");
+		//ExitProcess(0);
 	}
 	else {
 

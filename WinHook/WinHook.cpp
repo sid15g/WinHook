@@ -11,6 +11,7 @@
 #include <clocale>
 #include <locale>
 #include <vector>
+#include <cstdlib>
 
 #include "pedump.h"
 #include "winhook.h"
@@ -214,50 +215,141 @@ bool stricompare(std::string str1, std::string str2) {
 }
 
 /**
+*
 * Usage:
-  winhook.exe -e TargetExe
+	winhook.exe -e TargetExe -f ApiName
+* 
+* --- Incomplete ---
+*	** Hook the specific API
+*
+* Acheived Till now:
+*	1. Check if API exists in PE header
+*	2. Open the executable as a process
+*	3. Enumerate all the modules and get the address of the API in memory
+*/
+void hookingSpecificAPIOfAnExecutable(char *argv[]) {
+
+	std::setlocale(LC_CTYPE, "");
+	char *dllname = (char*)"kernel32.dll";
+	std::string apiname = std::string("CreateThread");
+	std::string dllpath = std::string("C:\\Windows\\system32\\") + std::string(dllname);
+	//dumpExe(argv[2]);
+	//cout << dllpath << endl;
+
+	if (ifApiExists(argv[2], apiname) == 1) {
+
+		LPPROCESS_INFORMATION lpInfo = open_process(argv[2], 1000);
+
+		if (lpInfo->dwProcessId) {
+			printf("Started %lu\n", lpInfo->dwProcessId);
+			//snapshotAllModules(lpInfo->dwProcessId, std::string(dllname));
+			HMODULE dll = enum_modules(lpInfo->hProcess, dllpath);
+
+			if (dll != NULL) {
+				hook_api(apiname, dllpath, dll);
+				Sleep(5000);
+			}
+		}
+
+		CloseHandle(lpInfo->hProcess);
+		CloseHandle(lpInfo->hThread);
+
+	}
+	else {
+		printf("\n API not found in the import table \n");
+	}
+
+}//end of Function
+
+
+/** 
+* Reference:
+* https://resources.infosecinstitute.com/using-createremotethread-for-dll-injection-on-windows/#gref
+*/
+bool injectDll(int procID, char *dllPath) {
+
+	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procID);
+
+	if (process == NULL) {
+		printf("Error: the specified process couldn't be found.\n");
+		return false;
+	}
+
+	LPVOID addr = (LPVOID)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
+
+	if (addr == NULL) {
+		printf("Error: the LoadLibraryA function was not found inside kernel32.dll library.\n");
+		return false;
+	}
+
+	/*
+	* Allocate new memory region inside the process's address space.
+	*/
+	LPVOID arg = (LPVOID)VirtualAllocEx(process, NULL, strlen(dllPath), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	if (arg == NULL) {
+		printf("Error: the memory could not be allocated inside the chosen process.\n");
+		return false;
+	}
+
+	/*
+	* Write the argument to LoadLibraryA to the process's newly allocated memory region.
+	*/
+	int n = WriteProcessMemory(process, arg, dllPath, strlen(dllPath), NULL);
+	if (n == 0) {
+		printf("Error: there was no bytes written to the process's address space.\n");
+		return false;
+	}
+
+	/*
+	* Inject our DLL into the process's address space.
+	*/
+	HANDLE threadID = CreateRemoteThread(process, NULL, 0, (LPTHREAD_START_ROUTINE)addr, arg, NULL, NULL);
+	if (threadID == NULL) {
+		printf("Error: the remote thread could not be created.\n");
+		return false;
+	} else {
+		printf("Success: the remote thread was successfully created.\n");
+	}
+
+	/*
+	* Close the handle to the process, becuase we've already injected the DLL.
+	*/
+	CloseHandle(process);
+	return true;
+
+}//end of function
+
+/**
+* Injects the DLL created using detours.cpp, into a specific process
+*
+* Usage:-
+	winhook.exe -e TargetProcessId -f DLLPath/Name
 */
 int main(int argc, char *argv[]) {
 
-	if (argc < 3) {
-		printf("\nUsage : winhook.exe -e TargetExe -f APIName \n");
+	init_log();
+
+	if (argc < 5) {
+		printf("\nUsage : winhook.exe -e TargetProcessId -f DLLPath/Name \n");
+		log_call("Usage : winhook.exe -e TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
 		//cout << getPid() << endl;
 		//msgBox(getCurrentDateTime());
-		log_call("vidfbvidfb");
-		//ExitProcess(0);
-	}
-	else {
+		ExitProcess(0);
+	} else {
+		const int size = 75 * sizeof(char);
+		char *msg = (char*)calloc(75, sizeof(char));
+		memset(msg, '\0', size);
 
-		std::setlocale(LC_CTYPE, "");
-		char *dllname = (char*)"kernel32.dll";
-		std::string apiname = std::string("CreateThread");
-		std::string dllpath = std::string("C:\\Windows\\system32\\") + std::string(dllname);
-		//dumpExe(argv[2]);
-		//cout << dllpath << endl;
-
-		if (ifApiExists(argv[2], apiname) == 1) {
-	
-			LPPROCESS_INFORMATION lpInfo = open_process(argv[2], 1000);
-
-			if ( lpInfo->dwProcessId ) {
-				printf("Started %lu\n", lpInfo->dwProcessId);
-				//snapshotAllModules(lpInfo->dwProcessId, std::string(dllname));
-				HMODULE dll = enum_modules(lpInfo->hProcess, dllpath);
-
-				if ( dll != NULL) {
-					hook_api(apiname, dllpath, dll);
-					Sleep(5000);
-				}
-			}
-
-			CloseHandle(lpInfo->hProcess);
-			CloseHandle(lpInfo->hThread);
-
+		if (injectDll(atoi(argv[2]), argv[4])) {
+			sprintf_s(msg, size, " [%s][%s] DLL Injected Successfully! ", argv[4], argv[2]);
+			printf("%s\n", msg);
+			log_call(msg);
 		}
 		else {
-			printf("\n API not found in the import table \n");
+			sprintf_s(msg, size, " [%s][%s] DLL Injected Failed! ", argv[4], argv[2]);
+			printf("%s\n", msg);
+			log_call(msg);
 		}
-
 	}//end of if-else
 
 	return 0;

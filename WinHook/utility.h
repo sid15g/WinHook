@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-
+void init_log();
 int APIPRIVATE msgBox(char* messg);
 std::string APIPRIVATE getPid();
 char* APIPRIVATE getCurrentDateTime();

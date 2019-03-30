@@ -54,21 +54,27 @@ int APIPRIVATE msgBox(char* messg) {
 	);
 }
 
-void APIPRIVATE log_call(std::string apiName) {
-
+void init_log() {
 	std::string userprofile = getUserHome();
 	logFile = userprofile + std::string("\\Desktop\\winhook.txt");
 	//cout << logFile << endl;
+}
 
+void APIPRIVATE log_call(std::string apiName) {
+
+	msgBox((char*)"log call");
 	fopen_s(&pHookLog, (char*)logFile.c_str(), "a+");
 //	fopen_s(&pHookLog, "C:\\Users\\WindowsPMA\\Desktop\\winhook.txt", "a+");
 
 	if (!pHookLog) {
-		cout << "File opening failed" << endl;
+		OutputDebugString((LPCWSTR)"File opening failed");
+		msgBox((char*)"log failed");
 	}
 	else {
+		msgBox((char*)"file opened");
 		fprintf(pHookLog, "%s|%s\n", getCurrentDateTime(), (char*)apiName.c_str());
 		fclose(pHookLog);
+		msgBox((char*)"logged");
 	}
 
 }
@@ -78,73 +84,109 @@ void APIPRIVATE log_callA(std::string apiName) {
 	msgBox((char*)apiName.c_str());
 }
 
-void APIPRIVATE attach() {
-	DetourAttach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
-	DetourAttach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
-	DetourAttach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
-	DetourAttach(&(PVOID&)pRegSetValueExW, MyRegSetValueExW);
-	DetourAttach(&(PVOID&)pRegCreateKeyA, MyRegCreateKeyA);
-	DetourAttach(&(PVOID&)pRegCreateKeyW, MyRegCreateKeyW);
-	DetourAttach(&(PVOID&)pRegDeleteKeyA, MyRegDeleteKeyA);
-	DetourAttach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
-	DetourAttach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
-
-	DetourAttach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
-	DetourAttach(&(PVOID&)pCreateThread, MyCreateThread);
-	DetourAttach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
-
-	DetourAttach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	DetourAttach(&(PVOID&)pCreateFileW, MyCreateFileW);
+void APIPRIVATE Attach(PVOID *ppPointer, PVOID pDetour) {
 	
-	//DetourAttach(&(PVOID&)change, change);
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(ppPointer, pDetour);
+
+	if (DetourTransactionCommit() == NO_ERROR) {
+		OutputDebugString((LPCWSTR)" Detour Attach successfully");
+	}
+	else {
+		OutputDebugString((LPCWSTR)" Detoured Attach failed");
+	}
+
 }
 
-void APIPRIVATE detach() {
-	DetourDetach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
-	DetourDetach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
-	DetourDetach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
-	DetourDetach(&(PVOID&)pRegSetValueExW, MyRegSetValueExW);
-	DetourDetach(&(PVOID&)pRegCreateKeyA, MyRegCreateKeyA);
-	DetourDetach(&(PVOID&)pRegCreateKeyW, MyRegCreateKeyW);
-	DetourDetach(&(PVOID&)pRegDeleteKeyA, MyRegDeleteKeyA);
-	DetourDetach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
-	DetourDetach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
+void APIPRIVATE Detach(PVOID *ppPointer, PVOID pDetour) {
 
-	DetourDetach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
-	DetourDetach(&(PVOID&)pCreateThread, MyCreateThread);
-	DetourDetach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(ppPointer, pDetour);
 
-	DetourDetach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	DetourDetach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	if (DetourTransactionCommit() == NO_ERROR) {
+		OutputDebugString((LPCWSTR)" Detour Detach successfully");
+	}
+	else {
+		OutputDebugString((LPCWSTR)" Detour Detach failed");
+	}
 
-	//DetourDetach(&(PVOID&)change, change);
 }
+
+void APIPRIVATE attach_all() {
+	/*
+	Attach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
+	Attach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
+	Attach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
+	Attach(&(PVOID&)pRegSetValueExW, MyRegSetValueExW);
+	Attach(&(PVOID&)pRegCreateKeyA, MyRegCreateKeyA);
+	Attach(&(PVOID&)pRegCreateKeyW, MyRegCreateKeyW);
+	Attach(&(PVOID&)pRegDeleteKeyA, MyRegDeleteKeyA);
+	Attach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
+	Attach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
+
+	Attach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
+	Attach(&(PVOID&)pCreateThread, MyCreateThread);
+	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
+	*/
+	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
+	Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
+
+	//Attach(&(PVOID&)change, change);
+}
+
+void APIPRIVATE detach_all() {
+	/*
+	Detach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
+	Detach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
+	Detach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
+	Detach(&(PVOID&)pRegSetValueExW, MyRegSetValueExW);
+	Detach(&(PVOID&)pRegCreateKeyA, MyRegCreateKeyA);
+	Detach(&(PVOID&)pRegCreateKeyW, MyRegCreateKeyW);
+	Detach(&(PVOID&)pRegDeleteKeyA, MyRegDeleteKeyA);
+	Detach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
+	Detach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
+
+	Detach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
+	Detach(&(PVOID&)pCreateThread, MyCreateThread);
+	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
+	*/
+	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
+	Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
+
+	//Detach(&(PVOID&)change, change);
+}
+
+void APIPRIVATE safe_log_callA(std::string apiName) {
+	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
+	log_call(apiName);
+	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
+}
+
+void APIPRIVATE safe_log_callW(std::string apiName) {
+	Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	log_call(apiName);
+	Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
+}
+
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 
 	switch (dwReason) {
 
 		case DLL_PROCESS_ATTACH: {
-
 			logFile = getUserHome() + std::string("\\Desktop\\winhook_" + getPid() +"_log.txt");
 			//log_call("WinHook Loaded");
+			msgBox((char*)logFile.c_str());
 
 			DisableThreadLibraryCalls(hinst);
-			DetourTransactionBegin();
-			DetourUpdateThread(GetCurrentThread());
-			attach();
-			if (DetourTransactionCommit() == NO_ERROR)
-				OutputDebugString((LPCWSTR)"send() detoured successfully");
+			attach_all();
 			break;
 		}
 		case DLL_PROCESS_DETACH: {
-
-			log_call("WinHook Detached");
-			DetourTransactionBegin();
-			DetourUpdateThread(GetCurrentThread());
-			detach();
-			if (DetourTransactionCommit() == NO_ERROR)
-				OutputDebugString((LPCWSTR)"send() detoured successfully");
+			//log_call("WinHook Detached");
+			detach_all();
 			break;
 		}
 		case DLL_THREAD_ATTACH:
@@ -169,7 +211,7 @@ LSTATUS WINAPI MyRegCreateKeyExA(
 	LPDWORD                     lpdwDisposition
 ) {
 	log_call("RegCreateKeyExA");
-	return RegCreateKeyExA(hKey, lpSubKey, Reserved, lpClass, dwOptions,
+	return pRegCreateKeyExA(hKey, lpSubKey, Reserved, lpClass, dwOptions,
 		samDesired, lpSecurityAttributes, phkResult, lpdwDisposition );
 }
 
@@ -185,7 +227,7 @@ LSTATUS WINAPI MyRegCreateKeyExW(
 	LPDWORD lpdwDisposition
 ) {
 	log_call("RegCreateKeyExW");
-	return RegCreateKeyExW(hKey, lpSubKey, Reserved, lpClass, dwOptions,
+	return pRegCreateKeyExW(hKey, lpSubKey, Reserved, lpClass, dwOptions,
 		samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 }
 
@@ -198,7 +240,7 @@ LSTATUS WINAPI MyRegSetValueExA(
 	DWORD      cbData
 ) {
 	log_call("RegSetValueExA");
-	return RegSetValueExA(hKey, lpValueName, Reserved, dwType, lpData, cbData);
+	return pRegSetValueExA(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 
 LSTATUS WINAPI MyRegSetValueExW(
@@ -210,7 +252,7 @@ LSTATUS WINAPI MyRegSetValueExW(
 	DWORD cbData
 ) {
 	log_call("RegSetValueExW");
-	return RegSetValueExW(hKey, lpValueName, Reserved, dwType, lpData, cbData);
+	return pRegSetValueExW(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 
 LSTATUS WINAPI MyRegCreateKeyA(
@@ -219,7 +261,7 @@ LSTATUS WINAPI MyRegCreateKeyA(
 	PHKEY phkResult
 ) {
 	log_call("RegCreateKeyA");
-	return RegCreateKeyA(hKey, lpSubKey, phkResult);
+	return pRegCreateKeyA(hKey, lpSubKey, phkResult);
 }
 
 LSTATUS WINAPI MyRegCreateKeyW(
@@ -228,7 +270,7 @@ LSTATUS WINAPI MyRegCreateKeyW(
 	PHKEY phkResult
 ) {
 	log_call("RegCreateKeyW");
-	return RegCreateKeyW(hKey, lpSubKey, phkResult);
+	return pRegCreateKeyW(hKey, lpSubKey, phkResult);
 }
 
 LSTATUS WINAPI MyRegDeleteKeyA(
@@ -236,7 +278,7 @@ LSTATUS WINAPI MyRegDeleteKeyA(
 	LPCSTR lpSubKey
 ) {
 	log_call("RegDeleteKeyA");
-	return RegDeleteKeyA(hKey, lpSubKey);
+	return pRegDeleteKeyA(hKey, lpSubKey);
 }
 
 LSTATUS WINAPI MyRegDeleteKeyW(
@@ -244,14 +286,14 @@ LSTATUS WINAPI MyRegDeleteKeyW(
 	LPCWSTR lpSubKey
 ) {
 	log_call("RegDeleteKeyW");
-	return RegDeleteKeyW(hKey, lpSubKey);
+	return pRegDeleteKeyW(hKey, lpSubKey);
 }
 
 LSTATUS WINAPI MyRegCloseKey(
 	HKEY hKey
 ) {
 	log_call("RegCloseKey");
-	return RegCloseKey(hKey);
+	return pRegCloseKey(hKey);
 }
 
 //====================================================================================
@@ -269,7 +311,7 @@ BOOL WINAPI MyCreateProcessA(
 	LPPROCESS_INFORMATION lpProcessInformation
 ) {
 	log_call("CreateProcessA");
-	return CreateProcessA(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles,
+	return pCreateProcessA(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles,
 		dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
 }
 
@@ -282,7 +324,7 @@ HANDLE WINAPI MyCreateThread(
 	LPDWORD                 lpThreadId
 ) {
 	log_call("CreateThread");
-	return CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+	return pCreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
 }
 
 BOOL WINAPI MyVirtualProtect(
@@ -292,7 +334,7 @@ BOOL WINAPI MyVirtualProtect(
 	PDWORD lpflOldProtect
 ) {
 	log_call("VirtualProtect");
-	return VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
+	return pVirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
 }
 
 HANDLE WINAPI MyCreateFileA(
@@ -304,8 +346,8 @@ HANDLE WINAPI MyCreateFileA(
 	DWORD                 dwFlagsAndAttributes,
 	HANDLE                hTemplateFile
 ) {
-	log_call("CreateFileA");
-	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
+	safe_log_callA("CreateFileA");
+	return pCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
 		dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
 
@@ -318,7 +360,7 @@ HANDLE WINAPI MyCreateFileW(
 	DWORD                 dwFlagsAndAttributes,
 	HANDLE                hTemplateFile
 ) {
-	log_call("CreateFileW");
-	return CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
+	safe_log_callW("CreateFileW");
+	return pCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
 		dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }

@@ -273,3 +273,18 @@ HANDLE WINAPI MyCreateFileW(
 );
 
 //====================================================================================
+
+HFILE (WINAPI *pOpenFile)(
+	LPCSTR     lpFileName,
+	LPOFSTRUCT lpReOpenBuff,
+	UINT       uStyle
+) = OpenFile;
+
+
+HFILE WINAPI MyOpenFile(
+	LPCSTR     lpFileName,
+	LPOFSTRUCT lpReOpenBuff,
+	UINT       uStyle
+);
+
+//====================================================================================

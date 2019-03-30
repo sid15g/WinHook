@@ -54,29 +54,22 @@ int APIPRIVATE msgBox(char* messg) {
 	);
 }
 
-void init_log() {
+FILE* init_log() {
 	std::string userprofile = getUserHome();
 	logFile = userprofile + std::string("\\Desktop\\winhook.txt");
 	//cout << logFile << endl;
+	//	fopen_s(&pHookLog, "C:\\Users\\WindowsPMA\\Desktop\\winhook.txt", "a+");
+	fopen_s(&pHookLog, (char*)logFile.c_str(), "a+");
+	return pHookLog;
 }
 
 void APIPRIVATE log_call(std::string apiName) {
-
-	msgBox((char*)"log call");
-	fopen_s(&pHookLog, (char*)logFile.c_str(), "a+");
-//	fopen_s(&pHookLog, "C:\\Users\\WindowsPMA\\Desktop\\winhook.txt", "a+");
-
 	if (!pHookLog) {
 		OutputDebugString((LPCWSTR)"File opening failed");
-		msgBox((char*)"log failed");
 	}
 	else {
-		msgBox((char*)"file opened");
 		fprintf(pHookLog, "%s|%s\n", getCurrentDateTime(), (char*)apiName.c_str());
-		fclose(pHookLog);
-		msgBox((char*)"logged");
 	}
-
 }
 
 void APIPRIVATE log_callA(std::string apiName) {
@@ -177,8 +170,10 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 
 		case DLL_PROCESS_ATTACH: {
 			logFile = getUserHome() + std::string("\\Desktop\\winhook_" + getPid() +"_log.txt");
+			fopen_s(&pHookLog, (char*)logFile.c_str(), "a+");
+
 			//log_call("WinHook Loaded");
-			msgBox((char*)logFile.c_str());
+			//msgBox((char*)logFile.c_str());
 
 			DisableThreadLibraryCalls(hinst);
 			attach_all();
@@ -187,6 +182,7 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 		case DLL_PROCESS_DETACH: {
 			//log_call("WinHook Detached");
 			detach_all();
+			fclose(pHookLog);
 			break;
 		}
 		case DLL_THREAD_ATTACH:
@@ -337,6 +333,8 @@ BOOL WINAPI MyVirtualProtect(
 	return pVirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
 }
 
+//====================================================================================
+
 HANDLE WINAPI MyCreateFileA(
 	LPCSTR               lpFileName,
 	DWORD                 dwDesiredAccess,
@@ -363,4 +361,14 @@ HANDLE WINAPI MyCreateFileW(
 	safe_log_callW("CreateFileW");
 	return pCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
 		dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+
+HFILE WINAPI MyOpenFile(
+	LPCSTR     lpFileName,
+	LPOFSTRUCT lpReOpenBuff,
+	UINT       uStyle
+) {
+	log_call("OpenFile");
+	return pOpenFile(lpFileName, lpReOpenBuff, uStyle);
 }

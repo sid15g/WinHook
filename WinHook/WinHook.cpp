@@ -327,7 +327,7 @@ bool injectDll(int procID, char *dllPath) {
 */
 int main(int argc, char *argv[]) {
 
-	init_log();
+	FILE* logFile = init_log();
 
 	if (argc < 5) {
 		printf("\nUsage : winhook.exe -e TargetProcessId -f DLLPath/Name \n");
@@ -352,6 +352,7 @@ int main(int argc, char *argv[]) {
 		}
 	}//end of if-else
 
+	fclose(logFile);
 	return 0;
 }
 

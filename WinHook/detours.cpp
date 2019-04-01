@@ -1,7 +1,4 @@
-#include <Windows.h>
-#include <detours.h>
 #include <algorithm>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <ctime>
@@ -108,7 +105,7 @@ void APIPRIVATE Detach(PVOID *ppPointer, PVOID pDetour) {
 }
 
 void APIPRIVATE attach_all() {
-	/*
+	
 	Attach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
 	Attach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
 	Attach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
@@ -119,18 +116,45 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
 	Attach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
 
+	Attach(&(PVOID&)pCreateToolhelp32Snapshot, MyCreateToolhelp32Snapshot);
 	Attach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
 	Attach(&(PVOID&)pCreateThread, MyCreateThread);
-	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
-	*/
-	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
 
-	//Attach(&(PVOID&)change, change);
+	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
+	//Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	Attach(&(PVOID&)pOpenFile, MyOpenFile);
+	Attach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
+	Attach(&(PVOID&)pDeleteFileW, MyDeleteFileW);
+	
+
+	Attach(&(PVOID&)pOpenProcess, MyOpenProcess);
+	Attach(&(PVOID&)pVirtualAlloc, MyVirtualAlloc);
+	Attach(&(PVOID&)pVirtualAllocEx, MyVirtualAllocEx);
+	Attach(&(PVOID&)pCreateRemoteThread, MyCreateRemoteThread);
+	Attach(&(PVOID&)pCreateRemoteThreadEx, MyCreateRemoteThreadEx);
+	Attach(&(PVOID&)pWriteProcessMemory, MyWriteProcessMemory);
+	Attach(&(PVOID&)pReadProcessMemory, MyReadProcessMemory);
+
+	Attach(&(PVOID&)pSetWindowsHookExA, MySetWindowsHookExA);
+	Attach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
+	Attach(&(PVOID&)pCallNextHookEx, MyCallNextHookEx);
+	Attach(&(PVOID&)pUnhookWindowsHookEx, MyUnhookWindowsHookEx);
+
+	Attach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
+	Attach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
+
+	/*
+	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
+	Attach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
+	Attach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
+	Attach(&(PVOID&)pLoadLibraryW, MyLoadLibraryW);
+	Attach(&(PVOID&)pLoadLibraryExA, MyLoadLibraryExA);
+	Attach(&(PVOID&)pLoadLibraryExW, MyLoadLibraryExW);
+	*/
 }
 
 void APIPRIVATE detach_all() {
-	/*
+	
 	Detach(&(PVOID&)pRegCreateKeyExA, MyRegCreateKeyExA);
 	Detach(&(PVOID&)pRegCreateKeyExW, MyRegCreateKeyExW);
 	Detach(&(PVOID&)pRegSetValueExA, MyRegSetValueExA);
@@ -141,14 +165,40 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pRegDeleteKeyW, MyRegDeleteKeyW);
 	Detach(&(PVOID&)pRegCloseKey, MyRegCloseKey);
 
+	Detach(&(PVOID&)pCreateToolhelp32Snapshot, MyCreateToolhelp32Snapshot);
 	Detach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
 	Detach(&(PVOID&)pCreateThread, MyCreateThread);
-	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
-	*/
+	
 	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	//Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	Detach(&(PVOID&)pOpenFile, MyOpenFile);
+	Detach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
+	Detach(&(PVOID&)pDeleteFileW, MyDeleteFileW);
 
-	//Detach(&(PVOID&)change, change);
+	Detach(&(PVOID&)pOpenProcess, MyOpenProcess);
+	Detach(&(PVOID&)pVirtualAlloc, MyVirtualAlloc);
+	Detach(&(PVOID&)pVirtualAllocEx, MyVirtualAllocEx);
+	Detach(&(PVOID&)pCreateRemoteThread, MyCreateRemoteThread);
+	Detach(&(PVOID&)pCreateRemoteThreadEx, MyCreateRemoteThreadEx);
+	Detach(&(PVOID&)pWriteProcessMemory, MyWriteProcessMemory);
+	Detach(&(PVOID&)pReadProcessMemory, MyReadProcessMemory);
+
+	Detach(&(PVOID&)pSetWindowsHookExA, MySetWindowsHookExA);
+	Detach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
+	Detach(&(PVOID&)pCallNextHookEx, MyCallNextHookEx);
+	Detach(&(PVOID&)pUnhookWindowsHookEx, MyUnhookWindowsHookEx);
+
+	Detach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
+	Detach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
+
+	/*
+	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
+	Detach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
+	Detach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
+	Detach(&(PVOID&)pLoadLibraryW, MyLoadLibraryW);
+	Detach(&(PVOID&)pLoadLibraryExA, MyLoadLibraryExA);
+	Detach(&(PVOID&)pLoadLibraryExW, MyLoadLibraryExW);
+	*/
 }
 
 void APIPRIVATE safe_log_callA(std::string apiName) {
@@ -294,6 +344,15 @@ LSTATUS WINAPI MyRegCloseKey(
 
 //====================================================================================
 
+HANDLE WINAPI MyCreateToolhelp32Snapshot(
+	DWORD dwFlags,
+	DWORD th32ProcessID
+) {
+	log_call("CreateToolhelp32Snapshot");
+	return pCreateToolhelp32Snapshot(dwFlags, th32ProcessID);
+}
+
+
 BOOL WINAPI MyCreateProcessA(
 	LPCSTR                lpApplicationName,
 	LPSTR                 lpCommandLine,
@@ -323,6 +382,85 @@ HANDLE WINAPI MyCreateThread(
 	return pCreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
 }
 
+HANDLE WINAPI MyOpenProcess(
+	DWORD dwDesiredAccess,
+	BOOL  bInheritHandle,
+	DWORD dwProcessId
+) {
+	log_call("OpenProcess");
+	return pOpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
+}
+
+LPVOID WINAPI MyVirtualAlloc(
+	LPVOID lpAddress,
+	SIZE_T dwSize,
+	DWORD  flAllocationType,
+	DWORD  flProtect
+) {
+	log_call("VirtualAlloc");
+	return pVirtualAlloc(lpAddress, dwSize, flAllocationType, flProtect);
+}
+
+LPVOID WINAPI MyVirtualAllocEx(
+	HANDLE hProcess,
+	LPVOID lpAddress,
+	SIZE_T dwSize,
+	DWORD  flAllocationType,
+	DWORD  flProtect
+) {
+	log_call("VirtualAllocEx");
+	return pVirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+}
+
+HANDLE WINAPI MyCreateRemoteThread(
+	HANDLE                 hProcess,
+	LPSECURITY_ATTRIBUTES  lpThreadAttributes,
+	SIZE_T                 dwStackSize,
+	LPTHREAD_START_ROUTINE lpStartAddress,
+	LPVOID                 lpParameter,
+	DWORD                  dwCreationFlags,
+	LPDWORD                lpThreadId
+) {
+	log_call("CreateRemoteThread");
+	return pCreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+}
+
+HANDLE WINAPI MyCreateRemoteThreadEx(
+	HANDLE                       hProcess,
+	LPSECURITY_ATTRIBUTES        lpThreadAttributes,
+	SIZE_T                       dwStackSize,
+	LPTHREAD_START_ROUTINE       lpStartAddress,
+	LPVOID                       lpParameter,
+	DWORD                        dwCreationFlags,
+	LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+	LPDWORD                      lpThreadId
+) {
+	log_call("CreateRemoteThreadEx");
+	return pCreateRemoteThreadEx(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpAttributeList, lpThreadId);
+}
+
+BOOL WINAPI MyWriteProcessMemory(
+	HANDLE  hProcess,
+	LPVOID  lpBaseAddress,
+	LPCVOID lpBuffer,
+	SIZE_T  nSize,
+	SIZE_T  *lpNumberOfBytesWritten
+) {
+	log_call("WriteProcessMemory");
+	return pWriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+}
+
+BOOL WINAPI MyReadProcessMemory(
+	HANDLE  hProcess,
+	LPCVOID lpBaseAddress,
+	LPVOID  lpBuffer,
+	SIZE_T  nSize,
+	SIZE_T  *lpNumberOfBytesRead
+) {
+	log_call("ReadProcessMemory");
+	return pReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+}
+
 BOOL WINAPI MyVirtualProtect(
 	LPVOID lpAddress,
 	SIZE_T dwSize,
@@ -331,6 +469,49 @@ BOOL WINAPI MyVirtualProtect(
 ) {
 	log_call("VirtualProtect");
 	return pVirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect);
+}
+
+BOOL WINAPI MyVirtualProtectEx(
+	HANDLE hProcess,
+	LPVOID lpAddress,
+	SIZE_T dwSize,
+	DWORD  flNewProtect,
+	PDWORD lpflOldProtect
+) {
+	log_call("VirtualProtectEx");
+	return pVirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
+}
+
+HMODULE WINAPI MyLoadLibraryA(
+	LPCSTR lpLibFileName
+) {
+	log_call("LoadLibraryA");
+	return pLoadLibraryA(lpLibFileName);
+}
+
+HMODULE WINAPI MyLoadLibraryW(
+	LPCWSTR lpLibFileName
+) {
+	log_call("LoadLibraryW");
+	return pLoadLibraryW(lpLibFileName);
+}
+
+HMODULE WINAPI MyLoadLibraryExA(
+	LPCSTR lpLibFileName,
+	HANDLE hFile,
+	DWORD  dwFlags
+) {
+	log_call("LoadLibraryExA");
+	return pLoadLibraryExA(lpLibFileName, hFile, dwFlags);
+}
+
+HMODULE WINAPI MyLoadLibraryExW(
+	LPCWSTR lpLibFileName,
+	HANDLE hFile,
+	DWORD  dwFlags
+) {
+	log_call("LoadLibraryExW");
+	return pLoadLibraryExW(lpLibFileName, hFile, dwFlags);
 }
 
 //====================================================================================
@@ -371,4 +552,82 @@ HFILE WINAPI MyOpenFile(
 ) {
 	log_call("OpenFile");
 	return pOpenFile(lpFileName, lpReOpenBuff, uStyle);
+}
+
+
+BOOL WINAPI MyDeleteFileA(
+	LPCSTR lpFileName
+) {
+	log_call("DeleteFileA");
+	return pDeleteFileA(lpFileName);
+}
+
+BOOL WINAPI MyDeleteFileW(
+	LPCWSTR lpFileName
+) {
+	log_call("DeleteFileW");
+	return pDeleteFileW(lpFileName);
+}
+
+//====================================================================================
+
+HHOOK WINAPI MySetWindowsHookExA(
+	int       idHook,
+	HOOKPROC  lpfn,
+	HINSTANCE hmod,
+	DWORD     dwThreadId
+) {
+	log_call("SetWindowsHookExA");
+	return pSetWindowsHookExA(idHook, lpfn, hmod, dwThreadId);
+}
+
+HHOOK WINAPI MySetWindowsHookExW(
+	int       idHook,
+	HOOKPROC  lpfn,
+	HINSTANCE hmod,
+	DWORD     dwThreadId
+) {
+	log_call("SetWindowsHookExW");
+	return pSetWindowsHookExW(idHook, lpfn, hmod, dwThreadId);
+}
+
+LRESULT WINAPI MyCallNextHookEx(
+	HHOOK  hhk,
+	int    nCode,
+	WPARAM wParam,
+	LPARAM lParam
+) {
+	log_call("CallNextHookEx");
+	return pCallNextHookEx(hhk, nCode, wParam, lParam);
+}
+
+BOOL WINAPI MyUnhookWindowsHookEx(
+	HHOOK hhk
+) {
+	log_call("UnhookWindowsHookEx");
+	return pUnhookWindowsHookEx(hhk);
+}
+
+//====================================================================================
+
+BOOL WINAPI MyCryptBinaryToStringA(
+	const BYTE *pbBinary,
+	DWORD      cbBinary,
+	DWORD      dwFlags,
+	LPSTR      pszString,
+	DWORD      *pcchString
+) {
+	log_call("CryptBinaryToStringA");	
+	return pCryptBinaryToStringA(pbBinary, cbBinary, dwFlags, pszString, pcchString);
+}
+
+BOOL WINAPI MyCryptBinaryToStringW(
+	const BYTE *pbBinary,
+	DWORD      cbBinary,
+	DWORD      dwFlags,
+	LPWSTR      pszString,
+	DWORD      *pcchString
+) {
+	log_call("CryptBinaryToStringW");
+	return pCryptBinaryToStringW(pbBinary, cbBinary, dwFlags, pszString, pcchString);
 }

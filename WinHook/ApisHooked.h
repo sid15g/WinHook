@@ -393,6 +393,36 @@ BOOL WINAPI MyVirtualProtectEx(
 
 //====================================================================================
 
+SIZE_T (WINAPI *pVirtualQuery)(
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+) = VirtualQuery;
+
+SIZE_T WINAPI MyVirtualQuery(
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+);
+
+//====================================================================================
+
+SIZE_T (WINAPI *pVirtualQueryEx)(
+	HANDLE                    hProcess,
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+) = VirtualQueryEx;
+
+SIZE_T WINAPI MyVirtualQueryEx(
+	HANDLE                    hProcess,
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+);
+
+//====================================================================================
+
 HMODULE (WINAPI *pLoadLibraryA)(
 	LPCSTR lpLibFileName
 ) = LoadLibraryA;
@@ -864,6 +894,107 @@ void (WINAPI *pOutputDebugStringW)(
 
 void WINAPI MyOutputDebugStringW(
 	LPCWSTR lpOutputString
+);
+
+//====================================================================================
+//====================================================================================
+
+void* (__cdecl *pmemcpy)(
+	void *dest,
+	const void *src,
+	size_t count
+) = memcpy;
+
+void* __cdecl MyMemcpy(
+	void *dest,
+	const void *src,
+	size_t count
+);
+
+//====================================================================================
+
+wchar_t* (__cdecl *pwmemcpy)(
+	wchar_t *dest,
+	const wchar_t *src,
+	size_t count
+) = wmemcpy;
+
+wchar_t* __cdecl MyWmemcpy(
+	wchar_t *dest,
+	const wchar_t *src,
+	size_t count
+);
+
+//====================================================================================
+
+errno_t (__cdecl *pmemcpy_s)(
+	void *dest,
+	size_t destSize,
+	const void *src,
+	size_t count
+) = memcpy_s;
+
+errno_t __cdecl MyMemcpy_s(
+	void *dest,
+	size_t destSize,
+	const void *src,
+	size_t count
+);
+
+//====================================================================================
+
+errno_t (__cdecl *pwmemcpy_s)(
+	wchar_t *dest,
+	size_t destSize,
+	const wchar_t *src,
+	size_t count
+) = wmemcpy_s;
+
+errno_t __cdecl MyWmemcpy_s(
+	wchar_t *dest,
+	size_t destSize,
+	const wchar_t *src,
+	size_t count
+);
+
+//====================================================================================
+
+void* (__cdecl *pmemset)(
+	void *dest,
+	int c,
+	size_t count
+) = memset;
+
+void* __cdecl MyMemset(
+	void *dest,
+	int c,
+	size_t count
+);
+
+//====================================================================================
+
+wchar_t* (__cdecl *pwmemset)(
+	wchar_t *dest,
+	wchar_t c,
+	size_t count
+) = wmemset;
+
+wchar_t* __cdecl MyWmemset(
+	wchar_t *dest,
+	wchar_t c,
+	size_t count
+);
+
+//====================================================================================
+
+PVOID (__cdecl *pSecureZeroMemory)(
+	PVOID  ptr,
+	SIZE_T cnt
+) = SecureZeroMemory;
+
+PVOID __cdecl MySecureZeroMemory(
+	PVOID  ptr,
+	SIZE_T cnt
 );
 
 //====================================================================================

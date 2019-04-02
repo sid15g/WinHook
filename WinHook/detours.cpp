@@ -119,8 +119,9 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
 	Attach(&(PVOID&)pCreateThread, MyCreateThread);
 
+	
 	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	//Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
 	Attach(&(PVOID&)pOpenFile, MyOpenFile);
 	Attach(&(PVOID&)p_lopen, My_lopen);
 	Attach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
@@ -130,10 +131,13 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pOpenProcess, MyOpenProcess);
 	Attach(&(PVOID&)pVirtualAlloc, MyVirtualAlloc);
 	Attach(&(PVOID&)pVirtualAllocEx, MyVirtualAllocEx);
+	Attach(&(PVOID&)pVirtualQuery, MyVirtualQuery);
+	Attach(&(PVOID&)pVirtualQueryEx, MyVirtualQueryEx);
 	Attach(&(PVOID&)pCreateRemoteThread, MyCreateRemoteThread);
 	Attach(&(PVOID&)pCreateRemoteThreadEx, MyCreateRemoteThreadEx);
 	Attach(&(PVOID&)pWriteProcessMemory, MyWriteProcessMemory);
 	Attach(&(PVOID&)pReadProcessMemory, MyReadProcessMemory);
+	
 
 	Attach(&(PVOID&)pSetWindowsHookExA, MySetWindowsHookExA);
 	Attach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
@@ -163,6 +167,16 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
 	/*
+	Attach(&(PVOID&)pmemcpy, MyMemcpy);
+	Attach(&(PVOID&)pwmemcpy, MyWmemcpy);
+	Attach(&(PVOID&)pmemcpy_s, MyMemcpy_s);
+	Attach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
+	Attach(&(PVOID&)pmemset, MyMemset);
+	Attach(&(PVOID&)pwmemset, MyWmemset);
+	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
+	*/
+
+	/*
 	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
 	Attach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
 	Attach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
@@ -188,25 +202,31 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pCreateProcessA, MyCreateProcessA);
 	Detach(&(PVOID&)pCreateThread, MyCreateThread);
 	
+	
 	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	//Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
+	Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
 	Detach(&(PVOID&)pOpenFile, MyOpenFile);
 	Detach(&(PVOID&)p_lopen, My_lopen);
 	Detach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
 	Detach(&(PVOID&)pDeleteFileW, MyDeleteFileW);
+	
 
 	Detach(&(PVOID&)pOpenProcess, MyOpenProcess);
 	Detach(&(PVOID&)pVirtualAlloc, MyVirtualAlloc);
 	Detach(&(PVOID&)pVirtualAllocEx, MyVirtualAllocEx);
+	Detach(&(PVOID&)pVirtualQuery, MyVirtualQuery);
+	Detach(&(PVOID&)pVirtualQueryEx, MyVirtualQueryEx);
 	Detach(&(PVOID&)pCreateRemoteThread, MyCreateRemoteThread);
 	Detach(&(PVOID&)pCreateRemoteThreadEx, MyCreateRemoteThreadEx);
 	Detach(&(PVOID&)pWriteProcessMemory, MyWriteProcessMemory);
 	Detach(&(PVOID&)pReadProcessMemory, MyReadProcessMemory);
+	
 
 	Detach(&(PVOID&)pSetWindowsHookExA, MySetWindowsHookExA);
 	Detach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
 	Detach(&(PVOID&)pCallNextHookEx, MyCallNextHookEx);
 	Detach(&(PVOID&)pUnhookWindowsHookEx, MyUnhookWindowsHookEx);
+
 
 	Detach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
 	Detach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
@@ -231,6 +251,16 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
 	/*
+	Detach(&(PVOID&)pmemcpy, MyMemcpy);
+	Detach(&(PVOID&)pwmemcpy, MyWmemcpy);
+	Detach(&(PVOID&)pmemcpy_s, MyMemcpy_s);
+	Detach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
+	Detach(&(PVOID&)pmemset, MyMemset);
+	Detach(&(PVOID&)pwmemset, MyWmemset);
+	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
+	*/
+
+	/*
 	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
 	Detach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
 	Detach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
@@ -240,16 +270,22 @@ void APIPRIVATE detach_all() {
 	*/
 }
 
-void APIPRIVATE safe_log_callA(std::string apiName) {
+void APIPRIVATE safe_log_callA() {
 	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
-	log_call(apiName);
+	log_call("CreateFileA");
 	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
 }
 
-void APIPRIVATE safe_log_callW(std::string apiName) {
+void APIPRIVATE safe_log_callW() {
 	Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
-	log_call(apiName);
+	log_call("CreateFileW");
 	Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
+}
+
+void APIPRIVATE safe_log_callNT() {
+	Detach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
+	log_call("NtCreateFile");
+	Attach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
 }
 
 
@@ -521,6 +557,25 @@ BOOL WINAPI MyVirtualProtectEx(
 	return pVirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, lpflOldProtect);
 }
 
+SIZE_T WINAPI MyVirtualQuery(
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+) {
+	log_call("VirtualQuery");
+	return pVirtualQuery(lpAddress, lpBuffer, dwLength);
+}
+
+SIZE_T WINAPI MyVirtualQueryEx(
+	HANDLE                    hProcess,
+	LPCVOID                   lpAddress,
+	PMEMORY_BASIC_INFORMATION lpBuffer,
+	SIZE_T                    dwLength
+) {
+	log_call("VirtualQueryEx");
+	return pVirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength);
+}
+
 HMODULE WINAPI MyLoadLibraryA(
 	LPCSTR lpLibFileName
 ) {
@@ -564,7 +619,7 @@ HANDLE WINAPI MyCreateFileA(
 	DWORD                 dwFlagsAndAttributes,
 	HANDLE                hTemplateFile
 ) {
-	safe_log_callA("CreateFileA");
+	safe_log_callA();
 	return pCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
 		dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
@@ -578,7 +633,7 @@ HANDLE WINAPI MyCreateFileW(
 	DWORD                 dwFlagsAndAttributes,
 	HANDLE                hTemplateFile
 ) {
-	safe_log_callW("CreateFileW");
+	safe_log_callW();
 	return pCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
 		dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
@@ -746,7 +801,7 @@ NTSTATUS WINAPI MyNtCreateFile(
 	IN PVOID              EaBuffer,
 	IN ULONG              EaLength
 ) {
-	log_call("NtCreateFile");
+	safe_log_callNT();
 	return pNtCreateFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, 
 		CreateDisposition, CreateOptions, EaBuffer, EaLength);
 }
@@ -833,6 +888,72 @@ void WINAPI MyOutputDebugStringW(
 ) {
 	log_call("OutputDebugStringW");
 	return pOutputDebugStringW(lpOutputString);
+}
+
+//====================================================================================
+
+void* __cdecl MyMemcpy(
+	void *dest,
+	const void *src,
+	size_t count
+) {
+	log_call("memcpy");
+	return pmemcpy(dest, src, count);
+}
+
+wchar_t* __cdecl MyWmemcpy(
+	wchar_t *dest,
+	const wchar_t *src,
+	size_t count
+) {
+	log_call("wmemcpy");
+	return pwmemcpy(dest, src, count);
+}
+
+errno_t __cdecl MyMemcpy_s(
+	void *dest,
+	size_t destSize,
+	const void *src,
+	size_t count
+) {
+	log_call("memcpy_s");
+	return pmemcpy_s(dest, destSize, src, count);
+}
+
+errno_t __cdecl MyWmemcpy_s(
+	wchar_t *dest,
+	size_t destSize,
+	const wchar_t *src,
+	size_t count
+) {
+	log_call("wmemcpy_s");
+	return pwmemcpy_s(dest, destSize, src, count);
+}
+
+void* __cdecl MyMemset(
+	void *dest,
+	int c,
+	size_t count
+) {
+	log_call("memset");
+	return pmemset(dest, c, count);
+}
+
+wchar_t* __cdecl MyWmemset(
+	wchar_t *dest,
+	wchar_t c,
+	size_t count
+) {
+	log_call("wmemset");
+	return pwmemset(dest, c, count);
+}
+
+PVOID __cdecl MySecureZeroMemory(
+	PVOID  ptr,
+	SIZE_T cnt
+) {
+	log_call("SecureZeroMemory");
+	return pSecureZeroMemory(ptr, cnt);
 }
 
 //====================================================================================

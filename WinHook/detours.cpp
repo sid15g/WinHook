@@ -10,7 +10,6 @@
 
 using namespace std;
 
-
 static std::string logFile;
 static FILE *pHookLog = NULL;
 
@@ -123,6 +122,7 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pCreateFileA, MyCreateFileA);
 	//Attach(&(PVOID&)pCreateFileW, MyCreateFileW);
 	Attach(&(PVOID&)pOpenFile, MyOpenFile);
+	Attach(&(PVOID&)p_lopen, My_lopen);
 	Attach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
 	Attach(&(PVOID&)pDeleteFileW, MyDeleteFileW);
 	
@@ -142,6 +142,20 @@ void APIPRIVATE attach_all() {
 
 	Attach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
 	Attach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
+	Attach(&(PVOID&)pCreateEventA, MyCreateEventA);
+	Attach(&(PVOID&)pCreateEventW, MyCreateEventW);
+	Attach(&(PVOID&)pCreateEventExA, MyCreateEventExA);
+	Attach(&(PVOID&)pCreateEventExW, MyCreateEventExW);
+
+	Attach(&(PVOID&)pNtOpenFile, MyNtOpenFile);
+	Attach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
+	Attach(&(PVOID&)pNtRenameKey, MyNtRenameKey);
+
+	Attach(&(PVOID&)psocket, MySocket);
+	Attach(&(PVOID&)psend, MySend);
+	Attach(&(PVOID&)precv, MyRecv);
+	Attach(&(PVOID&)pgethostbyname, MyGethostbyname);
+	Attach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
 
 	/*
 	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
@@ -172,6 +186,7 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pCreateFileA, MyCreateFileA);
 	//Detach(&(PVOID&)pCreateFileW, MyCreateFileW);
 	Detach(&(PVOID&)pOpenFile, MyOpenFile);
+	Detach(&(PVOID&)p_lopen, My_lopen);
 	Detach(&(PVOID&)pDeleteFileA, MyDeleteFileA);
 	Detach(&(PVOID&)pDeleteFileW, MyDeleteFileW);
 
@@ -190,6 +205,20 @@ void APIPRIVATE detach_all() {
 
 	Detach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
 	Detach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
+	Detach(&(PVOID&)pCreateEventA, MyCreateEventA);
+	Detach(&(PVOID&)pCreateEventW, MyCreateEventW);
+	Detach(&(PVOID&)pCreateEventExA, MyCreateEventExA);
+	Detach(&(PVOID&)pCreateEventExW, MyCreateEventExW);
+
+	Detach(&(PVOID&)pNtOpenFile, MyNtOpenFile);
+	Detach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
+	Detach(&(PVOID&)pNtRenameKey, MyNtRenameKey);
+
+	Detach(&(PVOID&)psocket, MySocket);
+	Detach(&(PVOID&)psend, MySend);
+	Detach(&(PVOID&)precv, MyRecv);
+	Detach(&(PVOID&)pgethostbyname, MyGethostbyname);
+	Detach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
 
 	/*
 	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
@@ -554,6 +583,13 @@ HFILE WINAPI MyOpenFile(
 	return pOpenFile(lpFileName, lpReOpenBuff, uStyle);
 }
 
+HFILE WINAPI My_lopen(
+	LPCSTR lpPathName,
+	int iReadWrite
+) {
+	log_call("_lopen");
+	return p_lopen(lpPathName, iReadWrite);
+}
 
 BOOL WINAPI MyDeleteFileA(
 	LPCSTR lpFileName
@@ -631,3 +667,137 @@ BOOL WINAPI MyCryptBinaryToStringW(
 	log_call("CryptBinaryToStringW");
 	return pCryptBinaryToStringW(pbBinary, cbBinary, dwFlags, pszString, pcchString);
 }
+
+HANDLE WINAPI MyCreateEventA(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCSTR                lpName
+) {
+	log_call("CreateEventA");
+	return pCreateEventA(lpEventAttributes, bManualReset, bInitialState, lpName);
+}
+
+HANDLE WINAPI MyCreateEventW(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCWSTR               lpName
+) {
+	log_call("CreateEventW");
+	return pCreateEventW(lpEventAttributes, bManualReset, bInitialState, lpName);
+}
+
+HANDLE WINAPI MyCreateEventExA(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCSTR                lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+) {
+	log_call("CreateEventExA");
+	return pCreateEventExA(lpEventAttributes, lpName, dwFlags, dwDesiredAccess);
+}
+
+HANDLE WINAPI MyCreateEventExW(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCWSTR               lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+) {
+	log_call("CreateEventExW");
+	return pCreateEventExW(lpEventAttributes, lpName, dwFlags, dwDesiredAccess);
+}
+
+//====================================================================================
+
+
+NTSTATUS WINAPI MyNtOpenFile(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN ULONG              ShareAccess,
+	IN ULONG              OpenOptions
+) {
+	log_call("NtOpenFile");
+	return pNtOpenFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, ShareAccess, OpenOptions);
+}
+
+NTSTATUS WINAPI MyNtCreateFile(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN PLARGE_INTEGER     AllocationSize,
+	IN ULONG              FileAttributes,
+	IN ULONG              ShareAccess,
+	IN ULONG              CreateDisposition,
+	IN ULONG              CreateOptions,
+	IN PVOID              EaBuffer,
+	IN ULONG              EaLength
+) {
+	log_call("NtCreateFile");
+	return pNtCreateFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, 
+		CreateDisposition, CreateOptions, EaBuffer, EaLength);
+}
+
+NTSTATUS WINAPI MyNtRenameKey(
+	HANDLE          KeyHandle,
+	PUNICODE_STRING NewName
+) {
+	log_call("NtRenameKey");
+	return pNtRenameKey(KeyHandle, NewName);
+}
+
+//====================================================================================
+
+SOCKET WINAPI MySocket(
+	int af,
+	int type,
+	int protocol
+) {
+	log_call("socket");
+	return psocket(af, type, protocol);
+}
+
+int WINAPI MySend(
+	SOCKET     s,
+	const char *buf,
+	int        len,
+	int        flags
+) {
+	log_call("send");
+	return psend(s, buf, len, flags);
+}
+
+int WINAPI MyRecv(
+	SOCKET s,
+	char   *buf,
+	int    len,
+	int    flags
+) {
+	log_call("recv");
+	return precv(s, buf, len, flags);
+}
+
+hostent* WINAPI MyGethostbyname(
+	const char *name
+) {
+	log_call("gethostbyname");
+	return pgethostbyname(name);
+}
+
+hostent* WINAPI MyGethostbyaddr(
+	const char *addr,
+	int        len,
+	int        type
+) {
+	log_call("gethostbyaddr");
+	return pgethostbyaddr(addr, len, type);
+}
+
+//====================================================================================
+
+// Add Debugger check APIs
+
+//====================================================================================

@@ -1,10 +1,15 @@
 #include <Windows.h>
 #include <Wincrypt.h>
 #include <TlHelp32.h>
+#include <synchapi.h>
+#include <winternl.h>
 #include <detours.h>
 
 #include "stdafx.h"
 
+#pragma comment(lib, "detours.lib")
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "crypt32.lib")
 
 //====================================================================================
 
@@ -497,6 +502,18 @@ HFILE WINAPI MyOpenFile(
 
 //====================================================================================
 
+HFILE (WINAPI *p_lopen)(
+	LPCSTR lpPathName,
+	int iReadWrite
+) = _lopen;
+
+HFILE WINAPI My_lopen(
+	LPCSTR lpPathName,
+	int iReadWrite
+);
+
+//====================================================================================
+
 BOOL (WINAPI *pDeleteFileA)(
 	LPCSTR lpFileName
 ) = DeleteFileA;
@@ -613,3 +630,202 @@ BOOL WINAPI MyCryptBinaryToStringW(
 	LPWSTR      pszString,
 	DWORD      *pcchString
 );
+
+//====================================================================================
+
+HANDLE (WINAPI *pCreateEventA)(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCSTR                lpName
+) = CreateEventA;
+
+HANDLE WINAPI MyCreateEventA(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCSTR                lpName
+);
+
+//====================================================================================
+
+HANDLE (WINAPI *pCreateEventW)(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCWSTR               lpName
+) = CreateEventW;
+
+HANDLE WINAPI MyCreateEventW(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	BOOL                  bManualReset,
+	BOOL                  bInitialState,
+	LPCWSTR               lpName
+);
+
+//====================================================================================
+
+HANDLE (WINAPI *pCreateEventExA)(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCSTR                lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+) = CreateEventExA;
+
+HANDLE WINAPI MyCreateEventExA(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCSTR                lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+);
+
+//====================================================================================
+
+HANDLE (WINAPI *pCreateEventExW)(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCWSTR               lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+) = CreateEventExW;
+
+HANDLE WINAPI MyCreateEventExW(
+	LPSECURITY_ATTRIBUTES lpEventAttributes,
+	LPCWSTR               lpName,
+	DWORD                 dwFlags,
+	DWORD                 dwDesiredAccess
+);
+
+//====================================================================================
+//====================================================================================
+
+NTSTATUS (WINAPI *pNtOpenFile)(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN ULONG              ShareAccess,
+	IN ULONG              OpenOptions
+) = NtOpenFile;
+
+NTSTATUS WINAPI MyNtOpenFile(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN ULONG              ShareAccess,
+	IN ULONG              OpenOptions
+);
+
+//====================================================================================
+
+NTSTATUS (WINAPI *pNtCreateFile)(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN PLARGE_INTEGER     AllocationSize,
+	IN ULONG              FileAttributes,
+	IN ULONG              ShareAccess,
+	IN ULONG              CreateDisposition,
+	IN ULONG              CreateOptions,
+	IN PVOID              EaBuffer,
+	IN ULONG              EaLength
+) = NtCreateFile;
+
+NTSTATUS WINAPI MyNtCreateFile(
+	OUT PHANDLE           FileHandle,
+	IN ACCESS_MASK        DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes,
+	OUT PIO_STATUS_BLOCK  IoStatusBlock,
+	IN PLARGE_INTEGER     AllocationSize,
+	IN ULONG              FileAttributes,
+	IN ULONG              ShareAccess,
+	IN ULONG              CreateDisposition,
+	IN ULONG              CreateOptions,
+	IN PVOID              EaBuffer,
+	IN ULONG              EaLength
+);
+
+//====================================================================================
+
+NTSTATUS (WINAPI *pNtRenameKey)(
+	HANDLE          KeyHandle,
+	PUNICODE_STRING NewName
+) = NtRenameKey;
+
+NTSTATUS WINAPI MyNtRenameKey(
+	HANDLE          KeyHandle,
+	PUNICODE_STRING NewName
+);
+
+//====================================================================================
+
+SOCKET (WINAPI *psocket)(
+	int af,
+	int type,
+	int protocol
+) = socket;
+
+SOCKET WINAPI MySocket(
+	int af,
+	int type,
+	int protocol
+);
+
+//====================================================================================
+
+int (WINAPI *psend)(
+	SOCKET     s,
+	const char *buf,
+	int        len,
+	int        flags
+) = send;
+
+int WINAPI MySend(
+	SOCKET     s,
+	const char *buf,
+	int        len,
+	int        flags
+);
+
+//====================================================================================
+
+int (WINAPI *precv)(
+	SOCKET s,
+	char   *buf,
+	int    len,
+	int    flags
+) = recv;
+
+int WINAPI MyRecv(
+	SOCKET s,
+	char   *buf,
+	int    len,
+	int    flags
+);
+
+//====================================================================================
+
+hostent* (WINAPI *pgethostbyname)(
+	const char *name
+) = gethostbyname;
+
+hostent* WINAPI MyGethostbyname(
+	const char *name
+);
+
+//====================================================================================
+
+hostent* (WINAPI *pgethostbyaddr)(
+	const char *addr,
+	int        len,
+	int        type
+) = gethostbyaddr;
+
+hostent* WINAPI MyGethostbyaddr(
+	const char *addr,
+	int        len,
+	int        type
+);
+
+//====================================================================================

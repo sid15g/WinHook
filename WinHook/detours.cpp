@@ -157,6 +157,11 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pgethostbyname, MyGethostbyname);
 	Attach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
 
+	Attach(&(PVOID&)pIsDebuggerPresent, MyIsDebuggerPresent);
+	Attach(&(PVOID&)pCheckRemoteDebuggerPresent, MyCheckRemoteDebuggerPresent);
+	Attach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
+	Attach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
+
 	/*
 	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
 	Attach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
@@ -219,6 +224,11 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)precv, MyRecv);
 	Detach(&(PVOID&)pgethostbyname, MyGethostbyname);
 	Detach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
+
+	Detach(&(PVOID&)pIsDebuggerPresent, MyIsDebuggerPresent);
+	Detach(&(PVOID&)pCheckRemoteDebuggerPresent, MyCheckRemoteDebuggerPresent);
+	Detach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
+	Detach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
 	/*
 	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
@@ -798,6 +808,31 @@ hostent* WINAPI MyGethostbyaddr(
 
 //====================================================================================
 
-// Add Debugger check APIs
+BOOL WINAPI MyIsDebuggerPresent(void) {
+	log_call("IsDebuggerPresent");
+	return pIsDebuggerPresent();
+}
+
+BOOL WINAPI MyCheckRemoteDebuggerPresent(
+	HANDLE hProcess,
+	PBOOL  pbDebuggerPresent
+) {
+	log_call("CheckRemoteDebuggerPresent");
+	return pCheckRemoteDebuggerPresent(hProcess, pbDebuggerPresent);
+}
+
+void WINAPI MyOutputDebugStringA(
+	LPCSTR lpOutputString
+) {
+	log_call("OutputDebugStringA");
+	return pOutputDebugStringA(lpOutputString);
+}
+
+void WINAPI MyOutputDebugStringW(
+	LPCWSTR lpOutputString
+) {
+	log_call("OutputDebugStringW");
+	return pOutputDebugStringW(lpOutputString);
+}
 
 //====================================================================================

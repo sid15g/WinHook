@@ -829,3 +829,41 @@ hostent* WINAPI MyGethostbyaddr(
 );
 
 //====================================================================================
+
+BOOL (WINAPI *pIsDebuggerPresent)(void) = IsDebuggerPresent;
+
+BOOL WINAPI MyIsDebuggerPresent(void);
+
+//====================================================================================
+
+BOOL (WINAPI *pCheckRemoteDebuggerPresent)(
+	HANDLE hProcess,
+	PBOOL  pbDebuggerPresent
+) = CheckRemoteDebuggerPresent;
+
+BOOL WINAPI MyCheckRemoteDebuggerPresent(
+	HANDLE hProcess,
+	PBOOL  pbDebuggerPresent
+);
+
+//====================================================================================
+
+void (WINAPI *pOutputDebugStringA)(
+	LPCSTR lpOutputString
+) = OutputDebugStringA;
+
+void WINAPI MyOutputDebugStringA(
+	LPCSTR lpOutputString
+);
+
+//====================================================================================
+
+void (WINAPI *pOutputDebugStringW)(
+	LPCWSTR lpOutputString
+) = OutputDebugStringW;
+
+void WINAPI MyOutputDebugStringW(
+	LPCWSTR lpOutputString
+);
+
+//====================================================================================

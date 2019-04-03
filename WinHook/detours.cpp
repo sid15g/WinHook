@@ -173,8 +173,8 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
 	Attach(&(PVOID&)pmemset, MyMemset);
 	Attach(&(PVOID&)pwmemset, MyWmemset);
-	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	*/
+	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 
 	/*
 	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
@@ -257,8 +257,8 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
 	Detach(&(PVOID&)pmemset, MyMemset);
 	Detach(&(PVOID&)pwmemset, MyWmemset);
-	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	*/
+	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 
 	/*
 	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);

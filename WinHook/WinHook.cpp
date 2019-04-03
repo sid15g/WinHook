@@ -87,8 +87,8 @@ LPPROCESS_INFORMATION open_process(char *lpApplicationName, int wait_time) {
 }//end of Function
 
 
-PROCESSENTRY32* snapshotAllProcesses(DWORD processId) {
-
+PROCESSENTRY32* snapshotAllProcessesEntry(DWORD processId) {
+	
 	PROCESSENTRY32 *pe32 = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32));
 
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -120,6 +120,50 @@ PROCESSENTRY32* snapshotAllProcesses(DWORD processId) {
 					return pe32;
 				}
 
+				CloseHandle(hProcess);
+
+			} while (Process32Next(hProcessSnap, pe32));
+		}
+	}
+
+	CloseHandle(hProcessSnap);
+	return NULL;
+}
+
+HANDLE snapshotAllProcesses(DWORD processId, DWORD dwDesiredAccess) {
+
+	PROCESSENTRY32 *pe32 = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32));
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (hProcessSnap == INVALID_HANDLE_VALUE) {
+		printf("CreateToolhelp32Snapshot Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
+	}
+	else {
+		pe32->dwSize = sizeof(PROCESSENTRY32);
+
+		if (!Process32First(hProcessSnap, pe32))
+		{
+			printf("Process32First Failed, GetLastError() = %u\n", (uint32_t)GetLastError()); // show cause of failure
+			CloseHandle(hProcessSnap);          // clean the snapshot object
+		}
+		else {
+			do {
+
+				//_tprintf(TEXT(" Reading Process (%s) : (%lu)"), pe32->szExeFile, pe32->th32ProcessID);
+
+				// Retrieve the priority class.
+				DWORD dwPriorityClass = 0;
+				HANDLE hProcess = OpenProcess(dwDesiredAccess, FALSE, pe32->th32ProcessID);
+
+				if (hProcess == NULL)
+					printf("OpenProcess Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
+				else if (pe32->th32ProcessID == processId) {
+					CloseHandle(hProcessSnap);
+					return hProcess;
+				}
+
+				CloseHandle(hProcess);
+
 			} while (Process32Next(hProcessSnap, pe32) );
 		}
 	}
@@ -128,6 +172,10 @@ PROCESSENTRY32* snapshotAllProcesses(DWORD processId) {
 	return NULL;
 }
 
+
+HANDLE snapshotAllProcessesA(DWORD processId) {
+	return snapshotAllProcesses(processId, PROCESS_VM_READ);
+}
 
 MODULEENTRY32* snapshotAllModules(DWORD processId, std::string dllName) {
 
@@ -271,44 +319,63 @@ bool injectDll(int procID, char *dllPath) {
 	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procID);
 
 	if (process == NULL) {
-		printf("Error: the specified process couldn't be found.\n");
-		return false;
-	}
+		printf(" Error: the specified process couldn't be found. \tError Code: %u\n", (uint32_t)GetLastError());
+		printf(" Trying other way... \n");
+
+		process = snapshotAllProcesses((DWORD)procID, PROCESS_ALL_ACCESS);
+
+		if (process == NULL) {
+			printf("Error: the specified process couldn't be found. \tError Code: %u\n", (uint32_t)GetLastError());
+			return false;
+		}
+	}//end of if-else
 
 	LPVOID addr = (LPVOID)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
 
 	if (addr == NULL) {
-		printf("Error: the LoadLibraryA function was not found inside kernel32.dll library.\n");
+		printf("Error: the LoadLibraryA function was not found inside kernel32.dll library. \tError Code: %u\n", (uint32_t)GetLastError());
 		return false;
 	}
 
+	const int sizeDLL = (strlen(dllPath) + 1) * sizeof(char);
+//	const int sizeDLL = strlen(dllPath);
 	/*
 	* Allocate new memory region inside the process's address space.
 	*/
-	LPVOID arg = (LPVOID)VirtualAllocEx(process, NULL, strlen(dllPath), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	LPVOID arg = (LPVOID)VirtualAllocEx(process, NULL, sizeDLL, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
 	if (arg == NULL) {
-		printf("Error: the memory could not be allocated inside the chosen process.\n");
+		printf("Error: the memory could not be allocated inside the chosen process. \tError Code: %u\n", (uint32_t)GetLastError());
 		return false;
 	}
 
 	/*
 	* Write the argument to LoadLibraryA to the process's newly allocated memory region.
 	*/
-	int n = WriteProcessMemory(process, arg, dllPath, strlen(dllPath), NULL);
+
+	int n = WriteProcessMemory(process, arg, dllPath, sizeDLL, NULL);
 	if (n == 0) {
-		printf("Error: there was no bytes written to the process's address space.\n");
+		printf("Error: there was no bytes written to the process's address space. \tError Code: %u\n", (uint32_t)GetLastError());
 		return false;
 	}
 
 	/*
 	* Inject our DLL into the process's address space.
 	*/
-	HANDLE threadID = CreateRemoteThread(process, NULL, 0, (LPTHREAD_START_ROUTINE)addr, arg, NULL, NULL);
+	HANDLE threadID = CreateRemoteThread(process, NULL, 0, (LPTHREAD_START_ROUTINE)addr, arg, 0, NULL);
+	
 	if (threadID == NULL) {
-		printf("Error: the remote thread could not be created.\n");
+		printf("Error: the remote thread could not be created. \tError Code: %u\n", (uint32_t)GetLastError());
 		return false;
 	} else {
 		printf("Success: the remote thread was successfully created.\n");
+		
+		LPDWORD lpExitCode = (LPDWORD)malloc(sizeof(LPDWORD));
+		WaitForSingleObject(threadID, INFINITE);
+		GetExitCodeThread(threadID, lpExitCode);
+		VirtualFreeEx(threadID, arg, 0, MEM_RELEASE);
+		CloseHandle(threadID);
+
 	}
 
 	/*

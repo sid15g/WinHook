@@ -130,6 +130,50 @@ PROCESSENTRY32* snapshotAllProcessesEntry(DWORD processId) {
 	return NULL;
 }
 
+DWORD snapshotAllProcessesB(std::wstring processName) {
+
+	PROCESSENTRY32 *pe32 = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32));
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (hProcessSnap == INVALID_HANDLE_VALUE) {
+		printf("CreateToolhelp32Snapshot Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
+	}
+	else {
+		pe32->dwSize = sizeof(PROCESSENTRY32);
+
+		if (!Process32First(hProcessSnap, pe32))
+		{
+			printf("Process32First Failed, GetLastError() = %u\n", (uint32_t)GetLastError()); // show cause of failure
+			CloseHandle(hProcessSnap);          // clean the snapshot object
+		}
+		else {
+			do {
+
+				//_tprintf(TEXT(" Reading Process (%s) : (%lu)"), pe32->szExeFile, pe32->th32ProcessID);
+
+				// Retrieve the priority class.
+				DWORD dwPriorityClass = 0;
+				HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, pe32->th32ProcessID);
+
+				if (hProcess == NULL)
+					printf("OpenProcess Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
+				else if (processName.compare(pe32->szExeFile)==0) {
+					//cout << pe32->szExeFile << endl;
+					CloseHandle(hProcessSnap);
+					CloseHandle(hProcess);
+					return pe32->th32ProcessID;
+				}
+
+				CloseHandle(hProcess);
+
+			} while (Process32Next(hProcessSnap, pe32));
+		}
+	}
+
+	CloseHandle(hProcessSnap);
+	return 0;
+}
+
 HANDLE snapshotAllProcesses(DWORD processId, DWORD dwDesiredAccess) {
 
 	PROCESSENTRY32 *pe32 = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32));
@@ -370,12 +414,12 @@ bool injectDll(int procID, char *dllPath) {
 	} else {
 		printf("Success: the remote thread was successfully created.\n");
 		
-		LPDWORD lpExitCode = (LPDWORD)malloc(sizeof(LPDWORD));
+		DWORD lpExitCode;// = (LPDWORD)malloc(sizeof(DWORD));
 		WaitForSingleObject(threadID, INFINITE);
-		GetExitCodeThread(threadID, lpExitCode);
+		GetExitCodeThread(threadID, &lpExitCode);
 		VirtualFreeEx(threadID, arg, 0, MEM_RELEASE);
 		CloseHandle(threadID);
-
+		
 	}
 
 	/*
@@ -395,18 +439,35 @@ bool injectDll(int procID, char *dllPath) {
 int main(int argc, char *argv[]) {
 
 	FILE* logFile = init_log();
+	const int size = 125 * sizeof(char);
+	char *msg = (char*)calloc(125, sizeof(char));
+	memset(msg, '\0', size);
 
-	if (argc < 5) {
+	if (argc == 1) {
+		
+		const std::wstring pshl = std::wstring(L"powershell.exe");
+		DWORD pid = snapshotAllProcessesB(pshl);
+		//printf("PID: %u\n", pid);
+
+		if (pid>0 && injectDll(pid, (char*)"C:\\WinHook.dll")) {
+			sprintf_s(msg, size, " [%u][C:\\WinHook.dll] DLL Injected Successfully! ", pid);
+			printf("%s\n", msg);
+			log_call(msg);
+		}
+		else {
+			sprintf_s(msg, size, " [%u][C:\\WinHook.dll] DLL Injected Failed! ", pid);
+			printf("%s\n", msg);
+			log_call(msg);
+		}
+		Sleep(5000);
+
+	}else if (argc < 5) {
 		printf("\nUsage : winhook.exe -e TargetProcessId -f DLLPath/Name \n");
 		log_call("Usage : winhook.exe -e TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
 		//cout << getPid() << endl;
 		//msgBox(getCurrentDateTime());
 		ExitProcess(0);
 	} else {
-		const int size = 75 * sizeof(char);
-		char *msg = (char*)calloc(75, sizeof(char));
-		memset(msg, '\0', size);
-
 		if (injectDll(atoi(argv[2]), argv[4])) {
 			sprintf_s(msg, size, " [%s][%s] DLL Injected Successfully! ", argv[4], argv[2]);
 			printf("%s\n", msg);

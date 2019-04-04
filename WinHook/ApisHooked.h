@@ -998,3 +998,15 @@ PVOID __cdecl MySecureZeroMemory(
 );
 
 //====================================================================================
+
+UINT (WINAPI *pWinExec)(
+	LPCSTR lpCmdLine,
+	UINT   uCmdShow
+) = WinExec;
+
+UINT WINAPI MyWinExec(
+	LPCSTR lpCmdLine,
+	UINT   uCmdShow
+);
+
+//====================================================================================

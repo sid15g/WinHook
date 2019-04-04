@@ -11,11 +11,14 @@
 
 using namespace std;
 
-#define EXPLORER false
-
+static bool EXPLORER = false;
 static std::string logFile;
 static FILE *pHookLog = NULL;
 static map<std::string, int> logs;
+
+void APIPRIVATE setExplorer(bool value) {
+	EXPLORER = value;
+}
 
 std::string APIPRIVATE getUserHome() {
 	char* buf = nullptr;
@@ -194,6 +197,7 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Attach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
+	Attach(&(PVOID&)pWinExec, MyWinExec);
 	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	Attach(&(PVOID&)pmemcpy, MyMemcpy);
 	Attach(&(PVOID&)pwmemcpy, MyWmemcpy);
@@ -278,6 +282,7 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Detach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
+	Detach(&(PVOID&)pWinExec, MyWinExec);
 	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	Detach(&(PVOID&)pmemcpy, MyMemcpy);
 	Detach(&(PVOID&)pwmemcpy, MyWmemcpy);
@@ -980,6 +985,14 @@ PVOID __cdecl MySecureZeroMemory(
 ) {
 	log_call("SecureZeroMemory");
 	return pSecureZeroMemory(ptr, cnt);
+}
+
+UINT WINAPI MyWinExec(
+	LPCSTR lpCmdLine,
+	UINT   uCmdShow
+) {
+	log_call("WinExec");
+	return pWinExec(lpCmdLine, uCmdShow);
 }
 
 //====================================================================================

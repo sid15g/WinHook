@@ -3,6 +3,7 @@
 #include "stdafx.h"
 
 FILE* init_log();
+void APIPRIVATE setExplorer(bool value);
 int APIPRIVATE msgBox(char* messg);
 std::string APIPRIVATE getPid();
 char* APIPRIVATE getCurrentDateTime();

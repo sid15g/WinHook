@@ -225,7 +225,7 @@ MODULEENTRY32* snapshotAllModules(DWORD processId, std::string dllName) {
 
 	MODULEENTRY32 *me32 = (MODULEENTRY32*)malloc(sizeof(MODULEENTRY32));
 
-	HANDLE hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE32, processId);
+	HANDLE hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processId);
 
 	if (hModuleSnap == INVALID_HANDLE_VALUE) {
 		printf("CreateToolhelp32Snapshot Failed, GetLastError() = %u\n", (uint32_t)GetLastError());
@@ -463,7 +463,7 @@ int main(int argc, char *argv[]) {
 
 	}else if (argc < 5) {
 		printf("\nUsage : winhook.exe -e TargetProcessId -f DLLPath/Name \n");
-		log_call("Usage : winhook.exe -e TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
+		//log_call("Usage : winhook.exe -e TargetProcessId -f DLLPath/Name "); //Also tests the functionality in detours.dll
 		//cout << getPid() << endl;
 		//msgBox(getCurrentDateTime());
 		ExitProcess(0);

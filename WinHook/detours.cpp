@@ -3,6 +3,7 @@
 #include <string>
 #include <ctime>
 #include <stdlib.h>
+#include <map>
 
 #include "stdafx.h"
 #include "ApisHooked.h"
@@ -10,8 +11,11 @@
 
 using namespace std;
 
+#define EXPLORER false
+
 static std::string logFile;
 static FILE *pHookLog = NULL;
+static map<std::string, int> logs;
 
 std::string APIPRIVATE getUserHome() {
 	char* buf = nullptr;
@@ -59,12 +63,36 @@ FILE* init_log() {
 	return pHookLog;
 }
 
+void APIPRIVATE printLogToFile() {
+	map<std::string, int>::iterator it = logs.begin();
+
+	while (it != logs.end()) {
+		std::string apiName = it->first;
+		int count = it->second;
+
+		fprintf(pHookLog, " %s \t %d\n", (char*)apiName.c_str(), count);
+		it++;
+	}//end of loop
+
+}
+
 void APIPRIVATE log_call(std::string apiName) {
 	if (!pHookLog) {
 		OutputDebugString((LPCWSTR)"File opening failed");
 	}
 	else {
-		fprintf(pHookLog, "%s|%s\n", getCurrentDateTime(), (char*)apiName.c_str());
+		map<std::string, int>::iterator it = logs.find(apiName);
+
+		if ( it == logs.end()) {
+			logs.insert(std::make_pair(apiName, 1));
+		}
+		else {
+			logs[apiName] = it->second + 1;
+		}
+		
+		if (EXPLORER) {
+			fprintf(pHookLog, "%s|%s\n", getCurrentDateTime(), (char*)apiName.c_str());
+		}
 	}
 }
 
@@ -166,24 +194,24 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Attach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
-	/*
+	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	Attach(&(PVOID&)pmemcpy, MyMemcpy);
 	Attach(&(PVOID&)pwmemcpy, MyWmemcpy);
 	Attach(&(PVOID&)pmemcpy_s, MyMemcpy_s);
 	Attach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
-	Attach(&(PVOID&)pmemset, MyMemset);
-	Attach(&(PVOID&)pwmemset, MyWmemset);
-	*/
-	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 
-	/*
+	if (!EXPLORER) {
+		Attach(&(PVOID&)pmemset, MyMemset);
+		Attach(&(PVOID&)pwmemset, MyWmemset);
+	}
+
 	Attach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
 	Attach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
 	Attach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
 	Attach(&(PVOID&)pLoadLibraryW, MyLoadLibraryW);
 	Attach(&(PVOID&)pLoadLibraryExA, MyLoadLibraryExA);
 	Attach(&(PVOID&)pLoadLibraryExW, MyLoadLibraryExW);
-	*/
+	
 }
 
 void APIPRIVATE detach_all() {
@@ -250,24 +278,23 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Detach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
-	/*
+	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	Detach(&(PVOID&)pmemcpy, MyMemcpy);
 	Detach(&(PVOID&)pwmemcpy, MyWmemcpy);
 	Detach(&(PVOID&)pmemcpy_s, MyMemcpy_s);
 	Detach(&(PVOID&)pwmemcpy_s, MyWmemcpy_s);
-	Detach(&(PVOID&)pmemset, MyMemset);
-	Detach(&(PVOID&)pwmemset, MyWmemset);
-	*/
-	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
+	if (!EXPLORER) {
+		Detach(&(PVOID&)pmemset, MyMemset);
+		Detach(&(PVOID&)pwmemset, MyWmemset);
+	}
 
-	/*
 	Detach(&(PVOID&)pVirtualProtect, MyVirtualProtect);
 	Detach(&(PVOID&)pVirtualProtectEx, MyVirtualProtectEx);
 	Detach(&(PVOID&)pLoadLibraryA, MyLoadLibraryA);
 	Detach(&(PVOID&)pLoadLibraryW, MyLoadLibraryW);
 	Detach(&(PVOID&)pLoadLibraryExA, MyLoadLibraryExA);
 	Detach(&(PVOID&)pLoadLibraryExW, MyLoadLibraryExW);
-	*/
+	
 }
 
 void APIPRIVATE safe_log_callA() {
@@ -288,11 +315,10 @@ void APIPRIVATE safe_log_callNT() {
 	Attach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
 }
 
-
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 
 	switch (dwReason) {
-
+		case DLL_THREAD_ATTACH:
 		case DLL_PROCESS_ATTACH: {
 			logFile = getUserHome() + std::string("\\Desktop\\winhook_" + getPid() +"_log.txt");
 			fopen_s(&pHookLog, (char*)logFile.c_str(), "a+");
@@ -302,17 +328,17 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 
 			DisableThreadLibraryCalls(hinst);
 			attach_all();
-			break;
 		}
+		break;
+		case DLL_THREAD_DETACH:
 		case DLL_PROCESS_DETACH: {
 			//log_call("WinHook Detached");
 			detach_all();
+
+			printLogToFile();
 			fclose(pHookLog);
-			break;
 		}
-		case DLL_THREAD_ATTACH:
-		case DLL_THREAD_DETACH:
-			break;
+		break;
 	}
 	return TRUE;
 

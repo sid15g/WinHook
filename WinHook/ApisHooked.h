@@ -836,6 +836,47 @@ int WINAPI MyRecv(
 
 //====================================================================================
 
+int (WINAPI *plisten)(
+	SOCKET s,
+	int backlog
+) = listen;
+
+
+int WINAPI MyListen(
+	SOCKET s,
+	int backlog
+);
+
+//====================================================================================
+
+int (WINAPI *pconnect)(
+	SOCKET s,
+	const struct sockaddr *name,
+	int namelen
+) = connect;
+
+int WINAPI MyConnect(
+	SOCKET s,
+	const struct sockaddr *name,
+	int namelen
+);
+
+//====================================================================================
+
+int (WINAPI *pbind)(
+	SOCKET s,
+	const struct sockaddr *addr,
+	int namelen
+) = bind;
+
+int WINAPI MyBind(
+	SOCKET s,
+	const struct sockaddr *addr,
+	int namelen
+);
+
+//====================================================================================
+
 hostent* (WINAPI *pgethostbyname)(
 	const char *name
 ) = gethostbyname;
@@ -857,6 +898,7 @@ hostent* WINAPI MyGethostbyaddr(
 	int        len,
 	int        type
 );
+
 
 //====================================================================================
 

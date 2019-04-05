@@ -189,6 +189,9 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)psocket, MySocket);
 	Attach(&(PVOID&)psend, MySend);
 	Attach(&(PVOID&)precv, MyRecv);
+	Attach(&(PVOID&)plisten, MyListen);
+	Attach(&(PVOID&)pconnect, MyConnect);
+	Attach(&(PVOID&)pbind, MyBind);
 	Attach(&(PVOID&)pgethostbyname, MyGethostbyname);
 	Attach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
 
@@ -274,6 +277,9 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)psocket, MySocket);
 	Detach(&(PVOID&)psend, MySend);
 	Detach(&(PVOID&)precv, MyRecv);
+	Detach(&(PVOID&)plisten, MyListen);
+	Detach(&(PVOID&)pconnect, MyConnect);
+	Detach(&(PVOID&)pbind, MyBind);
 	Detach(&(PVOID&)pgethostbyname, MyGethostbyname);
 	Detach(&(PVOID&)pgethostbyaddr, MyGethostbyaddr);
 
@@ -874,6 +880,32 @@ int WINAPI MyRecv(
 ) {
 	log_call("recv");
 	return precv(s, buf, len, flags);
+}
+
+int WINAPI MyListen(
+	SOCKET s,
+	int backlog
+) {
+	log_call("listen");
+	return plisten(s, backlog);
+}
+
+int WINAPI MyConnect(
+	SOCKET s,
+	const struct sockaddr *name,
+	int namelen
+) {
+	log_call("connect");
+	return pconnect(s, name, namelen);
+}
+
+int WINAPI MyBind(
+	SOCKET s,
+	const struct sockaddr *addr,
+	int namelen
+) {
+	log_call("bind");
+	return pbind(s, addr, namelen);
 }
 
 hostent* WINAPI MyGethostbyname(

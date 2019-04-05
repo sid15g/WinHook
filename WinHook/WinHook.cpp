@@ -520,6 +520,10 @@ int main(int argc, char *argv[]) {
 		Sleep(5000);
 	}
 	else if (argc == 2 && strcmp(argv[1], "-rsc")==0 ) {
+		const unsigned int pid = GetCurrentProcessId();
+		printf(" [%u] Loading WinHook Library to monitor shellcode...", pid);
+		injectDll(pid, (char*)"C:\\WinHook.dll");
+		Sleep(2000);
 		executeShellCodeOfReverseTCP();
 	}
 	else if (argc == 3) {

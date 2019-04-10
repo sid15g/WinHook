@@ -174,6 +174,13 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
 	Attach(&(PVOID&)pCallNextHookEx, MyCallNextHookEx);
 	Attach(&(PVOID&)pUnhookWindowsHookEx, MyUnhookWindowsHookEx);
+	Attach(&(PVOID&)pLookupPrivilegeValueA, MyLookupPrivilegeValueA);
+	Attach(&(PVOID&)pLookupPrivilegeValueW, MyLookupPrivilegeValueW);
+	Attach(&(PVOID&)pExitWindowsEx, MyExitWindowsEx);
+	Attach(&(PVOID&)pGetAsyncKeyState, MyGetAsyncKeyState);
+	Attach(&(PVOID&)pGetKeyState, MyGetKeyState);
+	Attach(&(PVOID&)pGetKeyboardState, MyGetKeyboardState);
+
 
 	Attach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
 	Attach(&(PVOID&)pCryptBinaryToStringW, MyCryptBinaryToStringW);
@@ -275,6 +282,12 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pSetWindowsHookExW, MySetWindowsHookExW);
 	Detach(&(PVOID&)pCallNextHookEx, MyCallNextHookEx);
 	Detach(&(PVOID&)pUnhookWindowsHookEx, MyUnhookWindowsHookEx);
+	Detach(&(PVOID&)pLookupPrivilegeValueA, MyLookupPrivilegeValueA);
+	Detach(&(PVOID&)pLookupPrivilegeValueW, MyLookupPrivilegeValueW);
+	Detach(&(PVOID&)pExitWindowsEx, MyExitWindowsEx);
+	Detach(&(PVOID&)pGetAsyncKeyState, MyGetAsyncKeyState);
+	Detach(&(PVOID&)pGetKeyState, MyGetKeyState);
+	Detach(&(PVOID&)pGetKeyboardState, MyGetKeyboardState);
 
 
 	Detach(&(PVOID&)pCryptBinaryToStringA, MyCryptBinaryToStringA);
@@ -773,6 +786,56 @@ BOOL WINAPI MyUnhookWindowsHookEx(
 	log_call("UnhookWindowsHookEx");
 	return pUnhookWindowsHookEx(hhk);
 }
+
+BOOL WINAPI MyLookupPrivilegeValueA(
+	LPCSTR lpSystemName,
+	LPCSTR lpName,
+	PLUID  lpLuid
+) {
+	log_call("LookupPrivilegeValueA");
+	return pLookupPrivilegeValueA(lpSystemName, lpName, lpLuid);
+}
+
+BOOL WINAPI MyLookupPrivilegeValueW(
+	LPCWSTR lpSystemName,
+	LPCWSTR lpName,
+	PLUID  lpLuid
+) {
+	log_call("LookupPrivilegeValueW");
+	return pLookupPrivilegeValueW(lpSystemName, lpName, lpLuid);
+}
+
+BOOL WINAPI MyExitWindowsEx(
+	UINT  uFlags,
+	DWORD dwReason
+) {
+	log_call("ExitWindowsEx");
+	return pExitWindowsEx(uFlags, dwReason);
+}
+
+SHORT WINAPI MyGetAsyncKeyState(
+	int vKey
+) {
+	log_call("GetAsyncKeyState");
+	return pGetAsyncKeyState(vKey);
+}
+
+
+SHORT WINAPI MyGetKeyState(
+	int nVirtKey
+) {
+	log_call("GetKeyState");
+	return pGetKeyState(nVirtKey);
+}
+
+
+BOOL WINAPI MyGetKeyboardState(
+	PBYTE lpKeyState
+) {
+	log_call("GetKeyboardState");
+	return pGetKeyboardState(lpKeyState);
+}
+
 
 //====================================================================================
 

@@ -619,18 +619,81 @@ BOOL (WINAPI *pUnhookWindowsHookEx)(
 	HHOOK hhk
 ) = UnhookWindowsHookEx;
 
-
 BOOL WINAPI MyUnhookWindowsHookEx(
 	HHOOK hhk
 );
 
-/*
-LookupPrivilegeValueW
-ExitWindowsEx
-GetAsyncKeyState
-GetKeyState
-GetKeyboardState
-*/
+//====================================================================================
+
+BOOL (WINAPI *pLookupPrivilegeValueA)(
+	LPCSTR lpSystemName,
+	LPCSTR lpName,
+	PLUID  lpLuid
+) = LookupPrivilegeValueA;
+
+BOOL WINAPI MyLookupPrivilegeValueA(
+	LPCSTR lpSystemName,
+	LPCSTR lpName,
+	PLUID  lpLuid
+);
+
+//====================================================================================
+
+BOOL(WINAPI *pLookupPrivilegeValueW)(
+	LPCWSTR lpSystemName,
+	LPCWSTR lpName,
+	PLUID  lpLuid
+	) = LookupPrivilegeValueW;
+
+BOOL WINAPI MyLookupPrivilegeValueW(
+	LPCWSTR lpSystemName,
+	LPCWSTR lpName,
+	PLUID  lpLuid
+);
+
+//====================================================================================
+
+
+BOOL (WINAPI *pExitWindowsEx)(
+	UINT  uFlags,
+	DWORD dwReason
+) = ExitWindowsEx;
+
+BOOL WINAPI MyExitWindowsEx(
+	UINT  uFlags,
+	DWORD dwReason
+);
+
+//====================================================================================
+
+SHORT (WINAPI *pGetAsyncKeyState)(
+	int vKey
+	) = GetAsyncKeyState;
+
+SHORT WINAPI MyGetAsyncKeyState(
+	int vKey
+);
+
+//====================================================================================
+
+SHORT (WINAPI *pGetKeyState)(
+	int nVirtKey
+	) = GetKeyState;
+
+SHORT WINAPI MyGetKeyState(
+	int nVirtKey
+);
+
+//====================================================================================
+
+BOOL(WINAPI *pGetKeyboardState)(
+	PBYTE lpKeyState
+	) = GetKeyboardState;
+
+BOOL WINAPI MyGetKeyboardState(
+	PBYTE lpKeyState
+);
+
 
 //====================================================================================
 //====================================================================================

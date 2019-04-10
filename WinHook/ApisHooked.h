@@ -3,6 +3,7 @@
 #include <TlHelp32.h>
 #include <synchapi.h>
 #include <winternl.h>
+#include <wininet.h>
 #include <detours.h>
 
 #include "stdafx.h"
@@ -623,6 +624,14 @@ BOOL WINAPI MyUnhookWindowsHookEx(
 	HHOOK hhk
 );
 
+/*
+LookupPrivilegeValueW
+ExitWindowsEx
+GetAsyncKeyState
+GetKeyState
+GetKeyboardState
+*/
+
 //====================================================================================
 //====================================================================================
 
@@ -724,6 +733,13 @@ HANDLE WINAPI MyCreateEventExW(
 	DWORD                 dwFlags,
 	DWORD                 dwDesiredAccess
 );
+
+/*
+CryptDecrypt
+CryptEncrypt
+CryptDecryptMessage
+CryptEncryptMessage
+*/
 
 //====================================================================================
 //====================================================================================
@@ -1049,6 +1065,265 @@ UINT (WINAPI *pWinExec)(
 UINT WINAPI MyWinExec(
 	LPCSTR lpCmdLine,
 	UINT   uCmdShow
+);
+
+//====================================================================================
+//====================================================================================
+
+HRESULT(WINAPI *pURLDownloadToFile)(
+	LPUNKNOWN            pCaller,
+	LPCTSTR              szURL,
+	LPCTSTR              szFileName,
+	DWORD                dwReserved,
+	LPBINDSTATUSCALLBACK lpfnCB
+	) = URLDownloadToFileW;
+
+HRESULT WINAPI MyURLDownloadToFile(
+	LPUNKNOWN            pCaller,
+	LPCTSTR              szURL,
+	LPCTSTR              szFileName,
+	DWORD                dwReserved,
+	LPBINDSTATUSCALLBACK lpfnCB
+);
+
+//====================================================================================
+
+HINTERNET (WINAPI *pHttpOpenRequestA)(
+	HINTERNET hConnect,
+	LPCSTR    lpszVerb,
+	LPCSTR    lpszObjectName,
+	LPCSTR    lpszVersion,
+	LPCSTR    lpszReferrer,
+	LPCSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+	) = HttpOpenRequestA;
+
+HINTERNET WINAPI MyHttpOpenRequestA(
+	HINTERNET hConnect,
+	LPCSTR    lpszVerb,
+	LPCSTR    lpszObjectName,
+	LPCSTR    lpszVersion,
+	LPCSTR    lpszReferrer,
+	LPCSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+);
+
+//====================================================================================
+
+HINTERNET(WINAPI *pHttpOpenRequestW)(
+	HINTERNET hConnect,
+	LPCWSTR    lpszVerb,
+	LPCWSTR    lpszObjectName,
+	LPCWSTR    lpszVersion,
+	LPCWSTR    lpszReferrer,
+	LPCWSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+	) = HttpOpenRequestW;
+
+HINTERNET WINAPI MyHttpOpenRequestW(
+	HINTERNET hConnect,
+	LPCWSTR    lpszVerb,
+	LPCWSTR    lpszObjectName,
+	LPCWSTR    lpszVersion,
+	LPCWSTR    lpszReferrer,
+	LPCWSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pHttpSendRequestA)(
+	HINTERNET hRequest,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+	) = HttpSendRequestA;
+
+BOOL WINAPI MyHttpSendRequestA(
+	HINTERNET hRequest,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pHttpSendRequestW)(
+	HINTERNET hRequest,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+) = HttpSendRequestW;
+
+BOOL WINAPI MyHttpSendRequestW(
+	HINTERNET hRequest,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+);
+
+//====================================================================================
+
+HINTERNET (WINAPI *pInternetConnectA)(
+	HINTERNET     hInternet,
+	LPCSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCSTR        lpszUserName,
+	LPCSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+) = InternetConnectA;
+
+HINTERNET WINAPI MyInternetConnectA(
+	HINTERNET     hInternet,
+	LPCSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCSTR        lpszUserName,
+	LPCSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+);
+
+//====================================================================================
+
+HINTERNET (WINAPI *pInternetConnectW)(
+	HINTERNET     hInternet,
+	LPCWSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCWSTR        lpszUserName,
+	LPCWSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+	) = InternetConnectW;
+
+HINTERNET WINAPI MyInternetConnectW(
+	HINTERNET     hInternet,
+	LPCWSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCWSTR        lpszUserName,
+	LPCWSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pInternetCrackUrlA)(
+	LPCSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSA lpUrlComponents
+) = InternetCrackUrlA;
+
+BOOL WINAPI MyInternetCrackUrlA(
+	LPCSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSA lpUrlComponents
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pInternetCrackUrlW)(
+	LPCWSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSW lpUrlComponents
+	) = InternetCrackUrlW;
+
+BOOL WINAPI MyInternetCrackUrlW(
+	LPCWSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSW lpUrlComponents
+);
+
+//====================================================================================
+
+HINTERNET (WINAPI *pInternetOpenA)(
+	LPCSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCSTR lpszProxy,
+	LPCSTR lpszProxyBypass,
+	DWORD  dwFlags
+	) = InternetOpenA;
+
+HINTERNET WINAPI MyInternetOpenA(
+	LPCSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCSTR lpszProxy,
+	LPCSTR lpszProxyBypass,
+	DWORD  dwFlags
+);
+
+//====================================================================================
+
+HINTERNET(WINAPI *pInternetOpenW)(
+	LPCWSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCWSTR lpszProxy,
+	LPCWSTR lpszProxyBypass,
+	DWORD  dwFlags
+	) = InternetOpenW;
+
+HINTERNET WINAPI MyInternetOpenW(
+	LPCWSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCWSTR lpszProxy,
+	LPCWSTR lpszProxyBypass,
+	DWORD  dwFlags
+);
+
+//====================================================================================
+
+HINTERNET (WINAPI *pInternetOpenUrlA)(
+	HINTERNET hInternet,
+	LPCSTR    lpszUrl,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+	) = InternetOpenUrlA;
+
+HINTERNET WINAPI MyInternetOpenUrlA(
+	HINTERNET hInternet,
+	LPCSTR    lpszUrl,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+);
+
+//====================================================================================
+
+HINTERNET(WINAPI *pInternetOpenUrlW)(
+	HINTERNET hInternet,
+	LPCWSTR    lpszUrl,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+	) = InternetOpenUrlW;
+
+HINTERNET WINAPI MyInternetOpenUrlW(
+	HINTERNET hInternet,
+	LPCWSTR    lpszUrl,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
 );
 
 //====================================================================================

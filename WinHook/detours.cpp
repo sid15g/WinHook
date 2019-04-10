@@ -200,6 +200,20 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Attach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
 
+	Attach(&(PVOID&)pURLDownloadToFile, MyURLDownloadToFile);
+	Attach(&(PVOID&)pHttpOpenRequestA, MyHttpOpenRequestA);
+	Attach(&(PVOID&)pHttpOpenRequestW, MyHttpOpenRequestW);
+	Attach(&(PVOID&)pHttpSendRequestA, MyHttpSendRequestA);
+	Attach(&(PVOID&)pHttpSendRequestW, MyHttpSendRequestW);
+	Attach(&(PVOID&)pInternetConnectA, MyInternetConnectA);
+	Attach(&(PVOID&)pInternetConnectW, MyInternetConnectW);
+	Attach(&(PVOID&)pInternetCrackUrlA, MyInternetCrackUrlA);
+	Attach(&(PVOID&)pInternetCrackUrlW, MyInternetCrackUrlW);
+	Attach(&(PVOID&)pInternetOpenA, MyInternetOpenA);
+	Attach(&(PVOID&)pInternetOpenW, MyInternetOpenW);
+	Attach(&(PVOID&)pInternetOpenUrlA, MyInternetOpenUrlA);
+	Attach(&(PVOID&)pInternetOpenUrlW, MyInternetOpenUrlW);
+
 	Attach(&(PVOID&)pWinExec, MyWinExec);
 	Attach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
 	Attach(&(PVOID&)pmemcpy, MyMemcpy);
@@ -287,6 +301,20 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pCheckRemoteDebuggerPresent, MyCheckRemoteDebuggerPresent);
 	Detach(&(PVOID&)pOutputDebugStringA, MyOutputDebugStringA);
 	Detach(&(PVOID&)pOutputDebugStringW, MyOutputDebugStringW);
+
+	Detach(&(PVOID&)pURLDownloadToFile, MyURLDownloadToFile);
+	Detach(&(PVOID&)pHttpOpenRequestA, MyHttpOpenRequestA);
+	Detach(&(PVOID&)pHttpOpenRequestW, MyHttpOpenRequestW);
+	Detach(&(PVOID&)pHttpSendRequestA, MyHttpSendRequestA);
+	Detach(&(PVOID&)pHttpSendRequestW, MyHttpSendRequestW);
+	Detach(&(PVOID&)pInternetConnectA, MyInternetConnectA);
+	Detach(&(PVOID&)pInternetConnectW, MyInternetConnectW);
+	Detach(&(PVOID&)pInternetCrackUrlA, MyInternetCrackUrlA);
+	Detach(&(PVOID&)pInternetCrackUrlW, MyInternetCrackUrlW);
+	Detach(&(PVOID&)pInternetOpenA, MyInternetOpenA);
+	Detach(&(PVOID&)pInternetOpenW, MyInternetOpenW);
+	Detach(&(PVOID&)pInternetOpenUrlA, MyInternetOpenUrlA);
+	Detach(&(PVOID&)pInternetOpenUrlW, MyInternetOpenUrlW);
 
 	Detach(&(PVOID&)pWinExec, MyWinExec);
 	Detach(&(PVOID&)pSecureZeroMemory, MySecureZeroMemory);
@@ -1025,6 +1053,167 @@ UINT WINAPI MyWinExec(
 ) {
 	log_call("WinExec");
 	return pWinExec(lpCmdLine, uCmdShow);
+}
+
+//====================================================================================
+
+HRESULT WINAPI MyURLDownloadToFile(
+	LPUNKNOWN            pCaller,
+	LPCTSTR              szURL,
+	LPCTSTR              szFileName,
+	DWORD                dwReserved,
+	LPBINDSTATUSCALLBACK lpfnCB
+) {
+	log_call("URLDownloadToFile");
+	return pURLDownloadToFile(pCaller, szURL, szFileName, dwReserved, lpfnCB);
+}
+
+HINTERNET WINAPI MyHttpOpenRequestA(
+	HINTERNET hConnect,
+	LPCSTR    lpszVerb,
+	LPCSTR    lpszObjectName,
+	LPCSTR    lpszVersion,
+	LPCSTR    lpszReferrer,
+	LPCSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+) {
+	log_call("HttpOpenRequestA");
+	return pHttpOpenRequestA(hConnect, lpszVerb, lpszObjectName, lpszVersion,
+		lpszReferrer, lplpszAcceptTypes, dwFlags, dwContext);
+}
+
+HINTERNET WINAPI MyHttpOpenRequestW(
+	HINTERNET hConnect,
+	LPCWSTR    lpszVerb,
+	LPCWSTR    lpszObjectName,
+	LPCWSTR    lpszVersion,
+	LPCWSTR    lpszReferrer,
+	LPCWSTR    *lplpszAcceptTypes,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+) {
+	log_call("HttpOpenRequestW");
+	return pHttpOpenRequestW(hConnect, lpszVerb, lpszObjectName, lpszVersion,
+		lpszReferrer, lplpszAcceptTypes, dwFlags, dwContext);
+}
+
+BOOL WINAPI MyHttpSendRequestA(
+	HINTERNET hRequest,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+) {
+	log_call("HttpSendRequestA");
+	return pHttpSendRequestA(hRequest, lpszHeaders, dwHeadersLength, lpOptional, dwOptionalLength);
+}
+
+BOOL WINAPI MyHttpSendRequestW(
+	HINTERNET hRequest,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	LPVOID    lpOptional,
+	DWORD     dwOptionalLength
+) {
+	log_call("HttpSendRequestW");
+	return pHttpSendRequestW(hRequest, lpszHeaders, dwHeadersLength, lpOptional, dwOptionalLength);
+}
+
+HINTERNET WINAPI MyInternetConnectA(
+	HINTERNET     hInternet,
+	LPCSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCSTR        lpszUserName,
+	LPCSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+) {
+	log_call("InternetConnectA");
+	return pInternetConnectA(hInternet, lpszServerName, nServerPort, lpszUserName, lpszPassword,
+		dwService, dwFlags, dwContext);
+}
+
+HINTERNET WINAPI MyInternetConnectW(
+	HINTERNET     hInternet,
+	LPCWSTR        lpszServerName,
+	INTERNET_PORT nServerPort,
+	LPCWSTR        lpszUserName,
+	LPCWSTR        lpszPassword,
+	DWORD         dwService,
+	DWORD         dwFlags,
+	DWORD_PTR     dwContext
+) {
+	log_call("InternetConnectW");
+	return pInternetConnectW(hInternet, lpszServerName, nServerPort, lpszUserName, lpszPassword,
+		dwService, dwFlags, dwContext);
+}
+
+BOOL WINAPI MyInternetCrackUrlA(
+	LPCSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSA lpUrlComponents
+) {
+	log_call("InternetCrackUrlA");
+	return pInternetCrackUrlA(lpszUrl, dwUrlLength, dwFlags, lpUrlComponents);
+}
+
+BOOL WINAPI MyInternetCrackUrlW(
+	LPCWSTR            lpszUrl,
+	DWORD             dwUrlLength,
+	DWORD             dwFlags,
+	LPURL_COMPONENTSW lpUrlComponents
+) {
+	log_call("InternetCrackUrlW");
+	return pInternetCrackUrlW(lpszUrl, dwUrlLength, dwFlags, lpUrlComponents);
+}
+
+HINTERNET WINAPI MyInternetOpenA(
+	LPCSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCSTR lpszProxy,
+	LPCSTR lpszProxyBypass,
+	DWORD  dwFlags
+) {
+	log_call("InternetOpenA");
+	return pInternetOpenA(lpszAgent, dwAccessType, lpszProxy, lpszProxyBypass, dwFlags);
+}
+
+HINTERNET WINAPI MyInternetOpenW(
+	LPCWSTR lpszAgent,
+	DWORD  dwAccessType,
+	LPCWSTR lpszProxy,
+	LPCWSTR lpszProxyBypass,
+	DWORD  dwFlags
+) {
+	log_call("InternetOpenW");
+	return pInternetOpenW(lpszAgent, dwAccessType, lpszProxy, lpszProxyBypass, dwFlags);
+}
+
+HINTERNET WINAPI MyInternetOpenUrlA(
+	HINTERNET hInternet,
+	LPCSTR    lpszUrl,
+	LPCSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+) {
+	log_call("InternetOpenUrlA");
+	return pInternetOpenUrlA(hInternet, lpszUrl, lpszHeaders, dwHeadersLength, dwFlags, dwContext);
+}
+
+HINTERNET WINAPI MyInternetOpenUrlW(
+	HINTERNET hInternet,
+	LPCWSTR    lpszUrl,
+	LPCWSTR    lpszHeaders,
+	DWORD     dwHeadersLength,
+	DWORD     dwFlags,
+	DWORD_PTR dwContext
+) {
+	log_call("InternetOpenUrlW");
+	return pInternetOpenUrlW(hInternet, lpszUrl, lpszHeaders, dwHeadersLength, dwFlags, dwContext);
 }
 
 //====================================================================================

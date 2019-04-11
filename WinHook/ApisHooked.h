@@ -797,12 +797,90 @@ HANDLE WINAPI MyCreateEventExW(
 	DWORD                 dwDesiredAccess
 );
 
-/*
-CryptDecrypt
-CryptEncrypt
-CryptDecryptMessage
-CryptEncryptMessage
-*/
+//====================================================================================
+
+
+BOOL (WINAPI *pCryptDecrypt)(
+  HCRYPTKEY  hKey,
+  HCRYPTHASH hHash,
+  BOOL       Final,
+  DWORD      dwFlags,
+  BYTE       *pbData,
+  DWORD      *pdwDataLen
+) = CryptDecrypt;
+
+BOOL WINAPI MyCryptDecrypt(
+  HCRYPTKEY  hKey,
+  HCRYPTHASH hHash,
+  BOOL       Final,
+  DWORD      dwFlags,
+  BYTE       *pbData,
+  DWORD      *pdwDataLen
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pCryptEncrypt)(
+  HCRYPTKEY  hKey,
+  HCRYPTHASH hHash,
+  BOOL       Final,
+  DWORD      dwFlags,
+  BYTE       *pbData,
+  DWORD      *pdwDataLen,
+  DWORD      dwBufLen
+) = CryptEncrypt;
+
+BOOL WINAPI MyCryptEncrypt(
+  HCRYPTKEY  hKey,
+  HCRYPTHASH hHash,
+  BOOL       Final,
+  DWORD      dwFlags,
+  BYTE       *pbData,
+  DWORD      *pdwDataLen,
+  DWORD      dwBufLen
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pCryptDecryptMessage)(
+  PCRYPT_DECRYPT_MESSAGE_PARA pDecryptPara,
+  const BYTE                  *pbEncryptedBlob,
+  DWORD                       cbEncryptedBlob,
+  BYTE                        *pbDecrypted,
+  DWORD                       *pcbDecrypted,
+  PCCERT_CONTEXT              *ppXchgCert
+) = CryptDecryptMessage;
+
+BOOL WINAPI MyCryptDecryptMessage(
+  PCRYPT_DECRYPT_MESSAGE_PARA pDecryptPara,
+  const BYTE                  *pbEncryptedBlob,
+  DWORD                       cbEncryptedBlob,
+  BYTE                        *pbDecrypted,
+  DWORD                       *pcbDecrypted,
+  PCCERT_CONTEXT              *ppXchgCert
+);
+
+//====================================================================================
+
+BOOL (WINAPI *pCryptEncryptMessage)(
+  PCRYPT_ENCRYPT_MESSAGE_PARA pEncryptPara,
+  DWORD                       cRecipientCert,
+  PCCERT_CONTEXT             rgpRecipientCert[],
+  const BYTE                  *pbToBeEncrypted,
+  DWORD                       cbToBeEncrypted,
+  BYTE                        *pbEncryptedBlob,
+  DWORD                       *pcbEncryptedBlob
+) = CryptEncryptMessage;
+
+BOOL WINAPI MyCryptEncryptMessage(
+  PCRYPT_ENCRYPT_MESSAGE_PARA pEncryptPara,
+  DWORD                       cRecipientCert,
+  PCCERT_CONTEXT              rgpRecipientCert[],
+  const BYTE                  *pbToBeEncrypted,
+  DWORD                       cbToBeEncrypted,
+  BYTE                        *pbEncryptedBlob,
+  DWORD                       *pcbEncryptedBlob
+);
 
 //====================================================================================
 //====================================================================================

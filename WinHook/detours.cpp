@@ -187,7 +187,10 @@ void APIPRIVATE attach_all() {
 	Attach(&(PVOID&)pCreateEventA, MyCreateEventA);
 	Attach(&(PVOID&)pCreateEventW, MyCreateEventW);
 	Attach(&(PVOID&)pCreateEventExA, MyCreateEventExA);
-	Attach(&(PVOID&)pCreateEventExW, MyCreateEventExW);
+	Attach(&(PVOID&)pCryptDecrypt, MyCryptDecrypt);
+	Attach(&(PVOID&)pCryptEncrypt, MyCryptEncrypt);
+	Attach(&(PVOID&)pCryptDecryptMessage, MyCryptDecryptMessage);
+	Attach(&(PVOID&)pCryptEncryptMessage, MyCryptEncryptMessage);
 
 	Attach(&(PVOID&)pNtOpenFile, MyNtOpenFile);
 	Attach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
@@ -296,6 +299,10 @@ void APIPRIVATE detach_all() {
 	Detach(&(PVOID&)pCreateEventW, MyCreateEventW);
 	Detach(&(PVOID&)pCreateEventExA, MyCreateEventExA);
 	Detach(&(PVOID&)pCreateEventExW, MyCreateEventExW);
+	Detach(&(PVOID&)pCryptDecrypt, MyCryptDecrypt);
+	Detach(&(PVOID&)pCryptEncrypt, MyCryptEncrypt);
+	Detach(&(PVOID&)pCryptDecryptMessage, MyCryptDecryptMessage);
+	Detach(&(PVOID&)pCryptEncryptMessage, MyCryptEncryptMessage);
 
 	Detach(&(PVOID&)pNtOpenFile, MyNtOpenFile);
 	Detach(&(PVOID&)pNtCreateFile, MyNtCreateFile);
@@ -900,6 +907,57 @@ HANDLE WINAPI MyCreateEventExW(
 	log_call("CreateEventExW");
 	return pCreateEventExW(lpEventAttributes, lpName, dwFlags, dwDesiredAccess);
 }
+
+BOOL WINAPI MyCryptDecrypt(
+	HCRYPTKEY  hKey,
+	HCRYPTHASH hHash,
+	BOOL       Final,
+	DWORD      dwFlags,
+	BYTE       *pbData,
+	DWORD      *pdwDataLen
+) {
+	log_call("CryptDecrypt");
+	return pCryptDecrypt(hKey, hHash, Final, dwFlags, pbData, pdwDataLen);
+}
+
+BOOL WINAPI MyCryptEncrypt(
+	HCRYPTKEY  hKey,
+	HCRYPTHASH hHash,
+	BOOL       Final,
+	DWORD      dwFlags,
+	BYTE       *pbData,
+	DWORD      *pdwDataLen,
+	DWORD      dwBufLen
+) {
+	log_call("CryptEncrypt");
+	return pCryptEncrypt(hKey, hHash, Final, dwFlags, pbData, pdwDataLen, dwBufLen);
+}
+
+BOOL WINAPI MyCryptDecryptMessage(
+	PCRYPT_DECRYPT_MESSAGE_PARA pDecryptPara,
+	const BYTE                  *pbEncryptedBlob,
+	DWORD                       cbEncryptedBlob,
+	BYTE                        *pbDecrypted,
+	DWORD                       *pcbDecrypted,
+	PCCERT_CONTEXT              *ppXchgCert
+) {
+	log_call("CryptDecryptMessage");
+	return pCryptDecryptMessage(pDecryptPara, pbEncryptedBlob, cbEncryptedBlob, pbDecrypted, pcbDecrypted, ppXchgCert);
+}
+
+BOOL WINAPI MyCryptEncryptMessage(
+	PCRYPT_ENCRYPT_MESSAGE_PARA pEncryptPara,
+	DWORD                       cRecipientCert,
+	PCCERT_CONTEXT              rgpRecipientCert[],
+	const BYTE                  *pbToBeEncrypted,
+	DWORD                       cbToBeEncrypted,
+	BYTE                        *pbEncryptedBlob,
+	DWORD                       *pcbEncryptedBlob
+) {
+	log_call("CryptEncryptMessage");
+	return pCryptEncryptMessage(pEncryptPara, cRecipientCert, rgpRecipientCert, pbToBeEncrypted, cbToBeEncrypted, pbEncryptedBlob, pcbEncryptedBlob);
+}
+
 
 //====================================================================================
 
